@@ -24,6 +24,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import textwrap
 
           path = Path("PingerApp/PingerApp.py")
           text = path.read_text(encoding="utf-8")
@@ -32,7 +33,7 @@ jobs:
           start = text.index(start_marker)
           end = text.index(end_marker, start)
 
-          replacement = '''        # §3.B.a Ping-Panel
+          block = '''# §3.B.a Ping-Panel
           ping_row = QGroupBox("Ping Panel")
           ping_row.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
           ping_h = QHBoxLayout()
@@ -40,8 +41,8 @@ jobs:
           ping_h.setSpacing(12)
           ping_h.setAlignment(Qt.AlignTop)
 
-          # Keep every primary control on the same two-row grid so headings and
-          # controls share a consistent baseline regardless of label/button width.
+          # Use two-row grids so all headings and primary controls share a
+          # consistent baseline across Windows DPI/font scaling settings.
           target_group = QGroupBox("Target")
           target_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
           target_grid = QGridLayout()
@@ -49,21 +50,12 @@ jobs:
           target_grid.setHorizontalSpacing(10)
           target_grid.setVerticalSpacing(2)
 
-          target_items = [
-              ("Host",         self.host_input,       200),
-              ("Reverse DNS",  self.reverse_dns_disp, 200),
-              ("Start/Stop",   self.start_btn,        100),
-              ("Pause/Resume", self.pause_btn,        100),
-          ]
-
-          # Host
           host_label = QLabel("Host")
           host_label.setAlignment(Qt.AlignCenter)
           self.host_input.setFixedSize(200, 30)
           target_grid.addWidget(host_label, 0, 0)
           target_grid.addWidget(self.host_input, 1, 0, alignment=Qt.AlignCenter)
 
-          # Preset uses one fixed-height holder, so Save/Del cannot move the row.
           preset_label = QLabel("Preset")
           preset_label.setAlignment(Qt.AlignCenter)
           preset_holder = QWidget()
@@ -77,8 +69,12 @@ jobs:
           target_grid.addWidget(preset_label, 0, 1)
           target_grid.addWidget(preset_holder, 1, 1, alignment=Qt.AlignCenter)
 
-          # Remaining target controls
-          for col, (label_text, widget, width) in enumerate(target_items[1:], start=2):
+          target_items = [
+              ("Reverse DNS",  self.reverse_dns_disp, 200),
+              ("Start/Stop",   self.start_btn,        100),
+              ("Pause/Resume", self.pause_btn,        100),
+          ]
+          for col, (label_text, widget, width) in enumerate(target_items, start=2):
               label = QLabel(label_text)
               label.setAlignment(Qt.AlignCenter)
               widget.setFixedSize(width, 30)
@@ -118,8 +114,6 @@ jobs:
           elapsed_grid.addWidget(self.elapsed_display, 1, 0, alignment=Qt.AlignCenter)
           elapsed_group.setLayout(elapsed_grid)
 
-          # Equalise the three group heights using Qt's own size hints. This keeps
-          # the row aligned across different Windows DPI/font scaling settings.
           top_group_height = max(
               target_group.sizeHint().height(),
               live_group.sizeHint().height(),
@@ -137,9 +131,13 @@ jobs:
 
 
           '''
-
+          replacement = textwrap.indent(textwrap.dedent(block), "        ")
           path.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
           PY
+
+      - name: Validate Python syntax
+        shell: bash
+        run: python -m py_compile PingerApp/PingerApp.py
 
       - name: Commit layout fix
         shell: bash
