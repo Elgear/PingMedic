@@ -3268,107 +3268,100 @@ class PingerApp(QWidget):
         left = QVBoxLayout()
 
         # §3.B.a Ping-Panel
-ping_row = QGroupBox("Ping Panel")
-ping_row.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-ping_h = QHBoxLayout()
-ping_h.setContentsMargins(8,8,8,8)
-ping_h.setSpacing(12)
-ping_h.setAlignment(Qt.AlignTop)
+        ping_row = QGroupBox("Ping Panel")
+        ping_row.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        ping_h = QHBoxLayout()
+        ping_h.setContentsMargins(8,8,8,8)
+        ping_h.setSpacing(12)
+        ping_h.setAlignment(Qt.AlignTop)
 
-# Keep every primary control on the same two-row grid so headings and
-# controls share a consistent baseline regardless of label/button width.
-target_group = QGroupBox("Target")
-target_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-target_grid = QGridLayout()
-target_grid.setContentsMargins(8,8,8,8)
-target_grid.setHorizontalSpacing(10)
-target_grid.setVerticalSpacing(2)
+        # Use two-row grids so all headings and primary controls share a
+        # consistent baseline across Windows DPI/font scaling settings.
+        target_group = QGroupBox("Target")
+        target_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        target_grid = QGridLayout()
+        target_grid.setContentsMargins(8,8,8,8)
+        target_grid.setHorizontalSpacing(10)
+        target_grid.setVerticalSpacing(2)
 
-target_items = [
-    ("Host",         self.host_input,       200),
-    ("Reverse DNS",  self.reverse_dns_disp, 200),
-    ("Start/Stop",   self.start_btn,        100),
-    ("Pause/Resume", self.pause_btn,        100),
-]
+        host_label = QLabel("Host")
+        host_label.setAlignment(Qt.AlignCenter)
+        self.host_input.setFixedSize(200, 30)
+        target_grid.addWidget(host_label, 0, 0)
+        target_grid.addWidget(self.host_input, 1, 0, alignment=Qt.AlignCenter)
 
-# Host
-host_label = QLabel("Host")
-host_label.setAlignment(Qt.AlignCenter)
-self.host_input.setFixedSize(200, 30)
-target_grid.addWidget(host_label, 0, 0)
-target_grid.addWidget(self.host_input, 1, 0, alignment=Qt.AlignCenter)
+        preset_label = QLabel("Preset")
+        preset_label.setAlignment(Qt.AlignCenter)
+        preset_holder = QWidget()
+        preset_row = QHBoxLayout(preset_holder)
+        preset_row.setContentsMargins(0,0,0,0)
+        preset_row.setSpacing(4)
+        preset_row.addWidget(self.target_preset_combo)
+        preset_row.addWidget(self.target_save_btn)
+        preset_row.addWidget(self.target_delete_btn)
+        preset_holder.setFixedHeight(30)
+        target_grid.addWidget(preset_label, 0, 1)
+        target_grid.addWidget(preset_holder, 1, 1, alignment=Qt.AlignCenter)
 
-# Preset uses one fixed-height holder, so Save/Del cannot move the row.
-preset_label = QLabel("Preset")
-preset_label.setAlignment(Qt.AlignCenter)
-preset_holder = QWidget()
-preset_row = QHBoxLayout(preset_holder)
-preset_row.setContentsMargins(0,0,0,0)
-preset_row.setSpacing(4)
-preset_row.addWidget(self.target_preset_combo)
-preset_row.addWidget(self.target_save_btn)
-preset_row.addWidget(self.target_delete_btn)
-preset_holder.setFixedHeight(30)
-target_grid.addWidget(preset_label, 0, 1)
-target_grid.addWidget(preset_holder, 1, 1, alignment=Qt.AlignCenter)
+        target_items = [
+            ("Reverse DNS",  self.reverse_dns_disp, 200),
+            ("Start/Stop",   self.start_btn,        100),
+            ("Pause/Resume", self.pause_btn,        100),
+        ]
+        for col, (label_text, widget, width) in enumerate(target_items, start=2):
+            label = QLabel(label_text)
+            label.setAlignment(Qt.AlignCenter)
+            widget.setFixedSize(width, 30)
+            target_grid.addWidget(label, 0, col)
+            target_grid.addWidget(widget, 1, col, alignment=Qt.AlignCenter)
+        target_group.setLayout(target_grid)
 
-# Remaining target controls
-for col, (label_text, widget, width) in enumerate(target_items[1:], start=2):
-    label = QLabel(label_text)
-    label.setAlignment(Qt.AlignCenter)
-    widget.setFixedSize(width, 30)
-    target_grid.addWidget(label, 0, col)
-    target_grid.addWidget(widget, 1, col, alignment=Qt.AlignCenter)
-target_group.setLayout(target_grid)
+        live_group = QGroupBox("Live Status")
+        live_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        live_group.setFixedWidth(430)
+        live_grid = QGridLayout()
+        live_grid.setContentsMargins(8,8,8,8)
+        live_grid.setHorizontalSpacing(12)
+        live_grid.setVerticalSpacing(2)
+        live_cols = [
+            ("Live Latency",  self.live_latency,         100),
+            ("RTT Health",    self.rtt_health_label,      90),
+            ("Live Jitter",   self.live_jitter,          100),
+            ("Jitter Health", self.jitter_health_label,   90),
+        ]
+        for col, (label_text, widget, width) in enumerate(live_cols):
+            label = QLabel(label_text)
+            label.setAlignment(Qt.AlignCenter)
+            widget.setFixedSize(width, 30)
+            live_grid.addWidget(label, 0, col)
+            live_grid.addWidget(widget, 1, col, alignment=Qt.AlignCenter)
+        live_group.setLayout(live_grid)
 
-live_group = QGroupBox("Live Status")
-live_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-live_group.setFixedWidth(430)
-live_grid = QGridLayout()
-live_grid.setContentsMargins(8,8,8,8)
-live_grid.setHorizontalSpacing(12)
-live_grid.setVerticalSpacing(2)
-live_cols = [
-    ("Live Latency",  self.live_latency,         100),
-    ("RTT Health",    self.rtt_health_label,      90),
-    ("Live Jitter",   self.live_jitter,          100),
-    ("Jitter Health", self.jitter_health_label,   90),
-]
-for col, (label_text, widget, width) in enumerate(live_cols):
-    label = QLabel(label_text)
-    label.setAlignment(Qt.AlignCenter)
-    widget.setFixedSize(width, 30)
-    live_grid.addWidget(label, 0, col)
-    live_grid.addWidget(widget, 1, col, alignment=Qt.AlignCenter)
-live_group.setLayout(live_grid)
+        elapsed_group = QGroupBox("Session")
+        elapsed_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        elapsed_grid = QGridLayout()
+        elapsed_grid.setContentsMargins(8,8,8,8)
+        elapsed_grid.setVerticalSpacing(2)
+        elapsed_label = QLabel("Elapsed Time")
+        elapsed_label.setAlignment(Qt.AlignCenter)
+        elapsed_grid.addWidget(elapsed_label, 0, 0)
+        elapsed_grid.addWidget(self.elapsed_display, 1, 0, alignment=Qt.AlignCenter)
+        elapsed_group.setLayout(elapsed_grid)
 
-elapsed_group = QGroupBox("Session")
-elapsed_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-elapsed_grid = QGridLayout()
-elapsed_grid.setContentsMargins(8,8,8,8)
-elapsed_grid.setVerticalSpacing(2)
-elapsed_label = QLabel("Elapsed Time")
-elapsed_label.setAlignment(Qt.AlignCenter)
-elapsed_grid.addWidget(elapsed_label, 0, 0)
-elapsed_grid.addWidget(self.elapsed_display, 1, 0, alignment=Qt.AlignCenter)
-elapsed_group.setLayout(elapsed_grid)
+        top_group_height = max(
+            target_group.sizeHint().height(),
+            live_group.sizeHint().height(),
+            elapsed_group.sizeHint().height(),
+        )
+        for group in (target_group, live_group, elapsed_group):
+            group.setFixedHeight(top_group_height)
 
-# Equalise the three group heights using Qt's own size hints. This keeps
-# the row aligned across different Windows DPI/font scaling settings.
-top_group_height = max(
-    target_group.sizeHint().height(),
-    live_group.sizeHint().height(),
-    elapsed_group.sizeHint().height(),
-)
-for group in (target_group, live_group, elapsed_group):
-    group.setFixedHeight(top_group_height)
-
-ping_h.addWidget(target_group, 0, Qt.AlignTop)
-ping_h.addWidget(live_group, 0, Qt.AlignTop)
-ping_h.addStretch(1)
-ping_h.addWidget(elapsed_group, 0, Qt.AlignTop)
-ping_row.setLayout(ping_h)
-ping_row.setFixedHeight(top_group_height + 32)
+        ping_h.addWidget(target_group, 0, Qt.AlignTop)
+        ping_h.addWidget(live_group, 0, Qt.AlignTop)
+        ping_h.addStretch(1)
+        ping_h.addWidget(elapsed_group, 0, Qt.AlignTop)
+        ping_row.setLayout(ping_h)
+        ping_row.setFixedHeight(top_group_height + 32)
 
 
         # §3.B.b Thresholds & sliders
