@@ -29,10 +29,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: "pip"
@@ -74,7 +74,7 @@ jobs:
           if (-not (Get-ChildItem "release\PingerApp_Setup_*.exe" -ErrorAction SilentlyContinue)) { throw "Installer was not created" }
 
       - name: Upload Windows installer artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: PingerApp-Windows-Installer-${{ env.PINGERAPP_VERSION }}
           path: release/PingerApp_Setup_*.exe
