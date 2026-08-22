@@ -3504,23 +3504,33 @@ class PingerApp(QWidget):
         tools_layout = QVBoxLayout()
         tools_layout.setContentsMargins(8,8,8,8)
         tools_layout.setSpacing(10)
-        tools_layout.addWidget(self.speedtest_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.adapter_info_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.lan_throughput_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.gateway_stability_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.loaded_latency_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.route_health_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.wifi_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.speed_targets_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.port_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.http_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.dns_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.dns_compare_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.mtu_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.trace_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.alerts_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.report_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.help_tool_btn, 0, Qt.AlignCenter)
+        tool_buttons = [
+            self.speedtest_btn,
+            self.adapter_info_btn,
+            self.lan_throughput_btn,
+            self.gateway_stability_btn,
+            self.loaded_latency_btn,
+            self.route_health_btn,
+            self.wifi_tool_btn,
+            self.speed_targets_tool_btn,
+            self.port_tool_btn,
+            self.http_tool_btn,
+            self.dns_tool_btn,
+            self.dns_compare_tool_btn,
+            self.mtu_tool_btn,
+            self.trace_tool_btn,
+            self.alerts_btn,
+            self.report_tool_btn,
+            self.help_tool_btn,
+        ]
+        for button in tool_buttons:
+            # The buttons were originally fixed at 135 px. Release that width
+            # constraint so each one fills the usable Tools panel width.
+            button.setMinimumWidth(0)
+            button.setMaximumWidth(16777215)
+            button.setFixedHeight(30)
+            button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            tools_layout.addWidget(button)
         tools_group.setLayout(tools_layout)
         right.addWidget(tools_group)
 
