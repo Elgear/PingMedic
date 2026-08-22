@@ -143,3 +143,5 @@ jobs:
           git diff --cached --check
           git commit -m "Add hover descriptions to main controls"
           git push origin HEAD:ui/align-top-controls
+
+# trigger tooltip patch workflow
