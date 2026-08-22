@@ -1,7 +1,8 @@
 name: Patch PR3 UI readability
 
 on:
-  pull_request:
+  pull_request_target:
+    types: [synchronize, opened, reopened]
     branches:
       - main
 
@@ -10,7 +11,7 @@ permissions:
 
 jobs:
   patch-pr3:
-    if: github.head_ref == 'ui/align-top-controls'
+    if: github.event.pull_request.head.ref == 'ui/align-top-controls'
     runs-on: ubuntu-latest
     steps:
       - name: Check out PR branch
@@ -145,9 +146,9 @@ jobs:
           python -m py_compile PingerApp/PingerApp.py
           git diff --check
 
-      - name: Remove obsolete branch-only helper workflow
+      - name: Remove temporary PR trigger marker
         shell: bash
-        run: rm -f .github/workflows/apply-main-tooltips.yml
+        run: rm -f .pr3-readability-trigger
 
       - name: Commit PR3 fixes if needed
         shell: bash
