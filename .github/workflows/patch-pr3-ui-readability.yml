@@ -1,18 +1,16 @@
-# Triggered after initial workflow registration
 name: Patch PR3 UI readability
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-    paths:
-      - ".github/workflows/patch-pr3-ui-readability.yml"
 
 permissions:
   contents: write
 
 jobs:
   patch-pr3:
+    if: github.head_ref == 'ui/align-top-controls'
     runs-on: ubuntu-latest
     steps:
       - name: Check out PR branch
@@ -28,26 +26,24 @@ jobs:
 
           path = Path("PingerApp/PingerApp.py")
           text = path.read_text(encoding="utf-8")
+          changed = False
 
           old_dense_grid = '''        # thick 5-ms gridlines\n        top5 = ceil(self.ax_lat.get_ylim()[1]/5)*5\n        for y0 in range(0, top5+1, 5):\n            self.ax_lat.axhline(y0, color='gray',linewidth=1.0, zorder=0)\n\n'''
-          if old_dense_grid not in text:
-              raise SystemExit("Dense latency grid block not found")
-          text = text.replace(
-              old_dense_grid,
-              '''        # Major/minor tick grids above are intentionally the only background\n        # grid. Avoid a fixed 5 ms overlay because large spikes would create\n        # dozens of heavy horizontal lines and make the graph unreadable.\n\n''',
-              1,
-          )
+          if old_dense_grid in text:
+              text = text.replace(
+                  old_dense_grid,
+                  '''        # Major/minor tick grids above are intentionally the only background\n        # grid. Avoid a fixed 5 ms overlay because large spikes would create\n        # dozens of heavy horizontal lines and make the graph unreadable.\n\n''',
+                  1,
+              )
+              changed = True
 
           old_jitter_ticks = '''            if   jaxis_span<=2:   jmajor = 0.25\n            elif jaxis_span<=5:   jmajor = 0.5\n            elif jaxis_span<=10:  jmajor = 1\n            elif jaxis_span<=20:  jmajor = 2\n            else:                 jmajor = 5\n'''
           new_jitter_ticks = '''            if   jaxis_span <= 2:    jmajor = 0.25\n            elif jaxis_span <= 5:    jmajor = 0.5\n            elif jaxis_span <= 10:   jmajor = 1\n            elif jaxis_span <= 20:   jmajor = 2\n            elif jaxis_span <= 50:   jmajor = 5\n            elif jaxis_span <= 100:  jmajor = 10\n            elif jaxis_span <= 250:  jmajor = 25\n            elif jaxis_span <= 500:  jmajor = 50\n            elif jaxis_span <= 1000: jmajor = 100\n            else:\n                magnitude = 10 ** math.floor(math.log10(max(jaxis_span, 1)))\n                normalized = jaxis_span / magnitude\n                if normalized <= 2:\n                    jmajor = magnitude / 5\n                elif normalized <= 5:\n                    jmajor = magnitude / 2\n                else:\n                    jmajor = magnitude\n'''
-          if old_jitter_ticks not in text:
-              raise SystemExit("Jitter tick block not found")
-          text = text.replace(old_jitter_ticks, new_jitter_ticks, 1)
+          if old_jitter_ticks in text:
+              text = text.replace(old_jitter_ticks, new_jitter_ticks, 1)
+              changed = True
 
           marker = '''        tools_group.setLayout(tools_layout)\n        right.addWidget(tools_group)\n'''
-          if marker not in text:
-              raise SystemExit("Tools layout marker not found")
-
           tooltip_block = r'''
         # §3.B.i Context help / hover descriptions
         # Keep the main window uncluttered while explaining each interactive area.
@@ -135,9 +131,13 @@ jobs:
         )
 '''
           if "# §3.B.i Context help / hover descriptions" not in text:
+              if marker not in text:
+                  raise SystemExit("Tools layout marker not found")
               text = text.replace(marker, marker + "\n" + tooltip_block, 1)
+              changed = True
 
-          path.write_text(text, encoding="utf-8")
+          if changed:
+              path.write_text(text, encoding="utf-8")
           PY
 
       - name: Validate patched Python
@@ -149,12 +149,16 @@ jobs:
         shell: bash
         run: rm -f .github/workflows/apply-main-tooltips.yml
 
-      - name: Commit PR3 fixes
+      - name: Commit PR3 fixes if needed
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add PingerApp/PingerApp.py .github/workflows/apply-main-tooltips.yml
+          git add -A
+          if git diff --cached --quiet; then
+            echo "PR3 is already patched."
+            exit 0
+          fi
           git diff --cached --check
           git commit -m "Improve graph readability and hover help"
           git push origin HEAD:ui/align-top-controls
