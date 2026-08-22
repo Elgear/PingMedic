@@ -1,1 +1,2 @@
 PyInstaller
+# CI validation trigger for PR3 UI patch
