@@ -1,0 +1,167 @@
+name: Patch PR3 UI readability
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/patch-pr3-ui-readability.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-pr3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v7
+        with:
+          ref: ui/align-top-controls
+
+      - name: Apply hover help and adaptive graph ticks
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("PingerApp/PingerApp.py")
+          text = path.read_text(encoding="utf-8")
+
+          # 1) Remove the dense fixed 5 ms latency overlay. The normal major/minor
+          # tick grids already communicate scale and adapt to large spikes.
+          old_dense_grid = '''        # thick 5-ms gridlines\n        top5 = ceil(self.ax_lat.get_ylim()[1]/5)*5\n        for y0 in range(0, top5+1, 5):\n            self.ax_lat.axhline(y0, color='gray',linewidth=1.0, zorder=0)\n\n'''
+          if old_dense_grid not in text:
+              raise SystemExit("Dense latency grid block not found")
+          text = text.replace(
+              old_dense_grid,
+              '''        # Major/minor tick grids above are intentionally the only background\n        # grid. Avoid a fixed 5 ms overlay because large spikes would create\n        # dozens of heavy horizontal lines and make the graph unreadable.\n\n''',
+              1,
+          )
+
+          # 2) Make jitter tick spacing scale with the actual range. Previously every
+          # range above 20 ms used 5 ms ticks, creating 40-50 overlapping labels.
+          old_jitter_ticks = '''            if   jaxis_span<=2:   jmajor = 0.25\n            elif jaxis_span<=5:   jmajor = 0.5\n            elif jaxis_span<=10:  jmajor = 1\n            elif jaxis_span<=20:  jmajor = 2\n            else:                 jmajor = 5\n'''
+          new_jitter_ticks = '''            if   jaxis_span <= 2:    jmajor = 0.25\n            elif jaxis_span <= 5:    jmajor = 0.5\n            elif jaxis_span <= 10:   jmajor = 1\n            elif jaxis_span <= 20:   jmajor = 2\n            elif jaxis_span <= 50:   jmajor = 5\n            elif jaxis_span <= 100:  jmajor = 10\n            elif jaxis_span <= 250:  jmajor = 25\n            elif jaxis_span <= 500:  jmajor = 50\n            elif jaxis_span <= 1000: jmajor = 100\n            else:\n                # Keep roughly 6-10 labelled ticks even for unusually large spikes.\n                magnitude = 10 ** math.floor(math.log10(max(jaxis_span, 1)))\n                normalized = jaxis_span / magnitude\n                if normalized <= 2:\n                    jmajor = magnitude / 5\n                elif normalized <= 5:\n                    jmajor = magnitude / 2\n                else:\n                    jmajor = magnitude\n'''
+          if old_jitter_ticks not in text:
+              raise SystemExit("Jitter tick block not found")
+          text = text.replace(old_jitter_ticks, new_jitter_ticks, 1)
+
+          # 3) Add comprehensive main-window hover descriptions. Use widget
+          # attributes rather than button text so toggling ON/OFF does not lose help.
+          marker = '''        tools_group.setLayout(tools_layout)\n        right.addWidget(tools_group)\n'''
+          if marker not in text:
+              raise SystemExit("Tools layout marker not found")
+
+          tooltip_block = r'''
++
++        # §3.B.i Context help / hover descriptions
++        # Keep the main window uncluttered while explaining each interactive area.
++        main_tips = {
++            "host_input": "Host name or IP address to monitor continuously, for example 8.8.8.8 or example.com.",
++            "target_preset_combo": "Select a previously saved monitoring target.",
++            "target_save_btn": "Save the current Host value as a reusable target preset.",
++            "target_delete_btn": "Delete the currently selected saved target preset.",
++            "reverse_dns_disp": "Reverse-DNS name resolved for the current target when a PTR record is available.",
++            "start_btn": "Start or stop continuous ping monitoring for the current target.",
++            "pause_btn": "Pause or resume sampling without clearing the current session statistics.",
++            "live_latency": "Most recent round-trip ping latency in milliseconds. Lower and steadier is generally better.",
++            "rtt_health_label": "Rolling latency health. Hover the status itself to see the current average RTT and packet loss used for the rating.",
++            "live_jitter": "Current jitter: the change between successive latency measurements. Lower values mean more consistent timing.",
++            "jitter_health_label": "Rolling jitter health. Hover the status itself to see the average jitter used for the rating.",
++            "elapsed_display": "Elapsed monitoring time for the current session. Pausing also pauses this timer.",
++            "lat_thresh_input": "Latency alert threshold in milliseconds. Successful pings above this value count as latency breaches when alerts are enabled.",
++            "lat_slider": "Adjust the latency alert threshold. Higher values make the latency alert less sensitive.",
++            "lat_toggle_btn": "Enable or disable latency breach detection and the latency threshold line on the graph.",
++            "loss_thresh_input": "Packet-loss alert threshold as a percentage of sent pings.",
++            "loss_slider": "Adjust the packet-loss percentage that triggers a loss alert.",
++            "loss_toggle_btn": "Enable or disable packet-loss breach detection.",
++            "jit_thresh_input": "Jitter alert threshold in milliseconds. Jitter above this value is highlighted when alerts are enabled.",
++            "jit_slider": "Adjust the jitter threshold. Lower values make the jitter alert more sensitive to timing variation.",
++            "jit_toggle_btn": "Enable or disable jitter breach detection and the jitter threshold line on the graph.",
++            "history_input": "Number of recent ping samples retained for the rolling graphs and statistics.",
++            "history_slider": "Adjust the rolling history window. Increasing it shows a longer period but makes each point more compact.",
++            "lat_count_label": "Number of latency-threshold breaches recorded in the current session.",
++            "loss_count_label": "Number of packet-loss threshold breaches recorded in the current session.",
++            "loss_value_label": "Current cumulative packet-loss percentage for the session.",
++            "reset_btn": "Clear the rolling samples, breach counters and calculated statistics without changing the target.",
++            "avg_low_label": "Average of the best (lowest-latency) 10 successful samples, or all samples if fewer than 10 exist.",
++            "avg_high_label": "Average of the worst (highest-latency) 10 successful samples, or all samples if fewer than 10 exist.",
++            "avg_comb_label": "Midpoint between the best-10 and worst-10 latency averages.",
++            "best_avg_btn": "Show or hide the best-10 latency average reference line.",
++            "worst_avg_btn": "Show or hide the worst-10 latency average reference line.",
++            "combined_avg_btn": "Show or hide the combined latency average reference line.",
++            "jit_low_label": "Lowest jitter measurement in the current rolling history.",
++            "jit_high_label": "Highest jitter measurement in the current rolling history.",
++            "jit_avg_label": "Average jitter across the current rolling history.",
++            "jit_min_btn": "Show or hide the minimum-jitter reference line.",
++            "jit_max_btn": "Show or hide the maximum-jitter reference line.",
++            "jit_avg_btn": "Show or hide the average-jitter reference line.",
++            "auto_btn": "Automatically scale the graph Y-axes so normal values and temporary spikes remain visible.",
++            "hostname_label": "Local computer host name.",
++            "host_ip_label": "Local IP address currently used for network access.",
++            "gateway_label": "Default gateway used to reach networks outside the local subnet.",
++            "public_ip_label": "Public internet-facing IP address detected for this connection.",
++            "public_isp_label": "Internet provider or network organisation associated with the public IP. Extra ASN/location detail may appear here.",
++            "host_mac_label": "MAC address detected for the primary local network interface.",
++        }
++        for attr, tip in main_tips.items():
++            widget = getattr(self, attr, None)
++            if widget is not None:
++                widget.setToolTip(tip)
++
++        tool_tips = {
++            "speedtest_btn": "Measure internet download/upload performance using the configured LibreSpeed engine.",
++            "adapter_info_btn": "Show active network-adapter details, link speed, addressing and connection state.",
++            "lan_throughput_btn": "Measure local-network throughput with the bundled iperf3 tooling.",
++            "gateway_stability_btn": "Repeatedly test the default gateway to identify local-router latency, loss or instability.",
++            "loaded_latency_btn": "Measure latency while the internet connection is under load to reveal bufferbloat or congestion.",
++            "route_health_btn": "Compare gateway, ISP-hop and public-target behaviour to help locate where latency or loss begins.",
++            "wifi_tool_btn": "Inspect Wi-Fi signal, channel, link rate and other wireless connection characteristics.",
++            "speed_targets_tool_btn": "Run or configure saved connectivity targets used for comparison testing.",
++            "port_tool_btn": "Discover local devices and perform safe TCP reachability/port checks.",
++            "http_tool_btn": "Test HTTP/HTTPS reachability, response timing and basic endpoint information.",
++            "dns_tool_btn": "Resolve DNS records and retrieve available domain/IP ownership information.",
++            "dns_compare_tool_btn": "Compare DNS resolution behaviour across multiple resolvers.",
++            "mtu_tool_btn": "Estimate the largest packet size that can travel to the target without fragmentation.",
++            "trace_tool_btn": "Trace the route to the current target and list intermediate network hops.",
++            "alerts_btn": "Open current alert and breach information.",
++            "report_tool_btn": "Generate or export a diagnostic report from collected session data.",
++            "help_tool_btn": "Open PingerApp usage help and diagnostic guidance.",
++        }
++        for attr, tip in tool_tips.items():
++            widget = getattr(self, attr, None)
++            if widget is not None:
++                widget.setToolTip(tip)
++
++        self.canvas.setToolTip(
++            "Graphs update from the rolling ping history. The upper plot shows round-trip latency; "
++            "the lower plot shows jitter (variation between consecutive latency samples). "
++            "Reference lines show enabled averages and thresholds. Auto-scale keeps real spikes visible while adapting the axis scale."
++        )
+'''.replace("\n+", "\n").lstrip("+")
++
++          if "# §3.B.i Context help / hover descriptions" not in text:
++              text = text.replace(marker, marker + tooltip_block, 1)
++
++          path.write_text(text, encoding="utf-8")
++          PY
++
++      - name: Validate patched Python
++        run: |
++          python -m py_compile PingerApp/PingerApp.py
++          git diff --check
++
++      - name: Remove obsolete branch-only helper workflow
++        shell: bash
++        run: rm -f .github/workflows/apply-main-tooltips.yml
++
++      - name: Commit PR3 fixes
++        shell: bash
++        run: |
++          git config user.name "github-actions[bot]"
++          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
++          git add PingerApp/PingerApp.py .github/workflows/apply-main-tooltips.yml
++          git diff --cached --check
++          git commit -m "Improve graph readability and hover help"
++          git push origin HEAD:ui/align-top-controls
