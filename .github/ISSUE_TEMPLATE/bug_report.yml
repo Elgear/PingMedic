@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a reproducible problem with PingerApp
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a PingerApp problem. Please avoid posting passwords, API keys, private hostnames, or other sensitive network information.
+  - type: input
+    id: version
+    attributes:
+      label: PingerApp version
+      description: Check the About window in PingerApp.
+      placeholder: "0.1.1"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Give the shortest sequence that reliably reproduces the issue.
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots or diagnostic details
+      description: Add screenshots or non-sensitive diagnostic output if useful.
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Security-sensitive information
+      options:
+        - label: I confirm this is not a security vulnerability requiring private disclosure. If it is, I will follow SECURITY.md instead.
+          required: true

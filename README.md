@@ -6,19 +6,28 @@ The Ping Panel supports saved Host presets so common gateways, public targets, a
 
 ## Download
 
-Windows builds are published from GitHub Releases:
+Official Windows builds are published only from GitHub Releases:
 
 ```text
 https://github.com/Elgear/PingerAPP/releases
 ```
 
-For version `0.1.0`, download `PingerAppSetup-0.1.0.exe` and verify the checksum:
+For public releases, download only the installer and its matching SHA-256 checksum file:
 
 ```text
-SHA256 F27DD934522CE6BCD09F4198D50D78094D54023C5320B10AF443292E8B9BB340
+PingerApp_Setup_<version>.exe
+PingerApp_Setup_<version>.exe.sha256
 ```
 
-The installer is currently unsigned, so Windows SmartScreen may show a warning.
+Verify the checksum with:
+
+```powershell
+Get-FileHash .\PingerApp_Setup_<version>.exe -Algorithm SHA256
+```
+
+The result must match the value published in the corresponding `.sha256` release asset.
+
+The installer is currently unsigned, so Windows SmartScreen may show a warning. The project intends to use trusted Authenticode signing for public releases when an appropriate signing service is available.
 
 ## Setup
 
@@ -29,7 +38,7 @@ pip install -r requirements.txt
 python .\PingerApp\PingerApp.py
 ```
 
-Raw ICMP ping can require elevated network privileges on some systems. If the app cannot create a raw socket, it will now show an error when pinging starts instead of failing before the window opens.
+Raw ICMP ping can require elevated network privileges on some systems. If the app cannot create a raw socket, it will show an error when pinging starts instead of failing before the window opens.
 
 Host Info includes local hostname, local IP, first-hop gateway, public IP, public ISP, and primary MAC address. ISP metadata is looked up with a timeout-bound public IP metadata request and falls back to `N/A` if unavailable.
 
@@ -52,6 +61,7 @@ The right-side Tools panel opens separate diagnostic windows:
 - Alerts: threshold alert log.
 - Report: selectable troubleshooting report with preview, `.txt` export, and spreadsheet-friendly `.csv` export for Host Info, Adapter Info, ping stats, LAN Throughput, Gateway Stability, Loaded Latency, Route Health, Wi-Fi Diagnostics, Speed Targets, Speed Test history, last DNS lookup, last traceroute, and Network Scanner results.
 - Help: offline field guide explaining the main panels, controls, graph readings, tool workflows, report output, and common diagnostic meanings.
+- About: shows the installed PingerApp version, public author identity (`Elgear`), official release location, and where to report bugs, feature ideas, or security issues.
 
 MAC addresses can only be discovered when the target exposes them on the local network path. Routed hosts usually show no MAC address, or only the next-hop device in the local ARP cache.
 
@@ -60,6 +70,16 @@ MAC addresses can only be discovered when the target exposes them on the local n
 PingerApp is a local troubleshooting tool and does not require accounts, API keys, or secrets. Some diagnostics intentionally contact selected targets, public DNS resolvers, public IP metadata services, or public LibreSpeed servers when those tools are run.
 
 Only run Network Scanner against networks and hosts you own or are authorized to troubleshoot. Security reporting guidance is in `SECURITY.md`.
+
+## Reporting issues and ideas
+
+Use GitHub Issues for reproducible bugs and improvement ideas:
+
+```text
+https://github.com/Elgear/PingerAPP/issues
+```
+
+Potential security vulnerabilities should follow the private/security reporting guidance in `SECURITY.md` rather than being disclosed publicly before assessment.
 
 ## License
 
@@ -98,7 +118,7 @@ For a local Windows build, use the PyInstaller wrapper script:
 .\scripts\build_windows.ps1 -Clean
 ```
 
-The build output is written to `dist\PingerApp\PingerApp.exe`. Full packaging notes are in `PACKAGING.md`. Packaging should use the dedicated `.packaging-venv` created from stable Python 3.13; do not build the release installer from the older prerelease virtual environments.
+The build output is written to `dist\PingerApp\PingerApp.exe`. Full packaging notes are in `PACKAGING.md`.
 
 For a PC install, build the PyInstaller output and then run the Inno Setup wrapper:
 
@@ -107,14 +127,4 @@ For a PC install, build the PyInstaller output and then run the Inno Setup wrapp
 .\scripts\build_installer.ps1
 ```
 
-The installer script is `installer\PingerApp.iss`, and the generated setup executable is written to `installer_output\PingerAppSetup-0.1.0.exe`. The installer includes:
-
-- the PingerApp executable and Python runtime bundle,
-- required Python libraries,
-- bundled `tools/librespeed/librespeed-cli.exe`,
-- LibreSpeed CLI license attribution,
-- bundled `tools/iperf3/iperf3.exe` and `tools/iperf3/cygwin1.dll`,
-- iperf3, Windows build, and Cygwin license attribution,
-- a Start Menu shortcut,
-- an optional desktop shortcut,
-- a note that ICMP ping may require elevated permissions depending on the machine.
+The installer script is `installer\PingerApp.iss`. Public release assets should be created by GitHub Actions rather than manually on a developer workstation.

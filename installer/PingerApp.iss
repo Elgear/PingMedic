@@ -1,9 +1,9 @@
 #define MyAppName "PingerApp"
 #define MyAppDisplayName "Home Pinger"
 #ifndef MyAppVersion
-  #define MyAppVersion "0.1.0"
+  #define MyAppVersion "0.1.1"
 #endif
-#define MyAppPublisher "PingerApp"
+#define MyAppPublisher "Elgear"
 #define MyAppExeName "PingerApp.exe"
 
 [Setup]

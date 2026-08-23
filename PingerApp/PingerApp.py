@@ -43,6 +43,7 @@ from matplotlib.backends.backend_qt5agg import (
 )
 from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator, NullFormatter, Locator, NullLocator
+from version import APP_NAME, APP_VERSION, APP_AUTHOR, GITHUB_REPOSITORY, GITHUB_ISSUES, OFFICIAL_RELEASES
 
 
 
@@ -3239,6 +3240,10 @@ class PingerApp(QWidget):
         self.help_tool_btn.setFixedSize(135, 30)
         self.help_tool_btn.setToolTip("Open PingerApp help and field guide")
         self.help_tool_btn.clicked.connect(self.show_help_window)
+        self.about_tool_btn = QPushButton("About")
+        self.about_tool_btn.setFixedSize(135, 30)
+        self.about_tool_btn.setToolTip("Show PingerApp version, author, official download, and issue-reporting information")
+        self.about_tool_btn.clicked.connect(self.show_about_dialog)
 
         # §3.A.k Host-info fields
         self.hostname_label  = QLabel("Loading...")
@@ -3522,6 +3527,7 @@ class PingerApp(QWidget):
             self.alerts_btn,
             self.report_tool_btn,
             self.help_tool_btn,
+            self.about_tool_btn,
         ]
         for button in tool_buttons:
             # The buttons were originally fixed at 135 px. Release that width
@@ -3607,6 +3613,7 @@ class PingerApp(QWidget):
             "alerts_btn": "Open current alert and breach information.",
             "report_tool_btn": "Generate or export a diagnostic report from collected session data.",
             "help_tool_btn": "Open PingerApp usage help and diagnostic guidance.",
+            "about_tool_btn": "Show the installed PingerApp version, author, official download location, and where to report bugs or ideas.",
         }
         for attr, tip in tool_tips.items():
             widget = getattr(self, attr, None)
@@ -6895,6 +6902,24 @@ class PingerApp(QWidget):
         self.alert_window.show()
         self.alert_window.raise_()
         self.alert_window.activateWindow()
+
+    def show_about_dialog(self):
+        """Show version, authorship, official distribution, and reporting details."""
+        box = QMessageBox(self)
+        box.setIcon(QMessageBox.Information)
+        box.setWindowTitle(f"About {APP_NAME}")
+        box.setText(f"<b>{APP_NAME}</b><br>Version {APP_VERSION}")
+        box.setInformativeText(
+            f"Developed by {APP_AUTHOR}.\n\n"
+            "Windows network diagnostics and monitoring utility.\n\n"
+            f"Official source: {GITHUB_REPOSITORY}\n"
+            f"Official installers: {OFFICIAL_RELEASES}\n\n"
+            "If you find a problem or have an idea for an improvement, please open a GitHub Issue:\n"
+            f"{GITHUB_ISSUES}\n\n"
+            "For security-sensitive reports, follow SECURITY.md in the official repository."
+        )
+        box.setStandardButtons(QMessageBox.Ok)
+        box.exec_()
 
     def show_help_window(self):
         """Open the offline help and documentation window."""
