@@ -8,6 +8,10 @@ https://github.com/Elgear/PingerAPP/releases
 
 Do not treat repository ZIP downloads, binaries re-hosted on third-party sites, or installers received through file-sharing services as official releases.
 
+## Public publisher identity
+
+The public project identity is **Elgear**. Application metadata, installer publisher metadata, release documentation, and future code-signing identity should use `Elgear` where the signing provider permits that publisher name.
+
 ## Release assets
 
 Each release should publish only the end-user installer and its SHA-256 checksum file:
