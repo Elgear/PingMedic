@@ -1,6 +1,6 @@
 APP_NAME = "PingerApp"
 APP_VERSION = "0.1.1"
-APP_AUTHOR = "Łukasz Grzybek"
+APP_AUTHOR = "Elgear"
 GITHUB_REPOSITORY = "https://github.com/Elgear/PingerAPP"
 GITHUB_ISSUES = "https://github.com/Elgear/PingerAPP/issues"
 OFFICIAL_RELEASES = "https://github.com/Elgear/PingerAPP/releases"
