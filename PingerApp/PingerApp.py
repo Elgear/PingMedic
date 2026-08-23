@@ -3270,81 +3270,100 @@ class PingerApp(QWidget):
         # §3.B.a Ping-Panel
         ping_row = QGroupBox("Ping Panel")
         ping_row.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        ping_row.setFixedHeight(115)
         ping_h = QHBoxLayout()
         ping_h.setContentsMargins(8,8,8,8)
         ping_h.setSpacing(12)
-        ping_h.setAlignment(Qt.AlignLeft)
+        ping_h.setAlignment(Qt.AlignTop)
 
+        # Use two-row grids so all headings and primary controls share a
+        # consistent baseline across Windows DPI/font scaling settings.
         target_group = QGroupBox("Target")
         target_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        target_h = QHBoxLayout()
-        target_h.setContentsMargins(8,8,8,8)
-        target_h.setSpacing(6)
-        target_cols = [
-            ("Host",         self.host_input,       200,30),
-            ("Reverse DNS",  self.reverse_dns_disp, 200,30),
-            ("Start/Stop",   self.start_btn,         90,30),
-            ("Pause/Resume", self.pause_btn,         90,30),
-        ]
-        for index, (lbl_text, wgt, w,h) in enumerate(target_cols):
-            wgt.setFixedSize(w,h)
-            v = QVBoxLayout(); v.setSpacing(2)
-            v.addWidget(QLabel(lbl_text), 0, Qt.AlignCenter)
-            v.addWidget(wgt)
-            target_h.addLayout(v)
-            if index == 1:
-                target_h.addSpacing(26)
-            elif index == 2:
-                target_h.addSpacing(10)
-        preset_v = QVBoxLayout(); preset_v.setSpacing(2)
-        preset_v.addWidget(QLabel("Preset"), 0, Qt.AlignCenter)
-        preset_row = QHBoxLayout(); preset_row.setSpacing(4)
+        target_grid = QGridLayout()
+        target_grid.setContentsMargins(8,8,8,8)
+        target_grid.setHorizontalSpacing(10)
+        target_grid.setVerticalSpacing(2)
+
+        host_label = QLabel("Host")
+        host_label.setAlignment(Qt.AlignCenter)
+        self.host_input.setFixedSize(200, 30)
+        target_grid.addWidget(host_label, 0, 0)
+        target_grid.addWidget(self.host_input, 1, 0, alignment=Qt.AlignCenter)
+
+        preset_label = QLabel("Preset")
+        preset_label.setAlignment(Qt.AlignCenter)
+        preset_holder = QWidget()
+        preset_row = QHBoxLayout(preset_holder)
+        preset_row.setContentsMargins(0,0,0,0)
+        preset_row.setSpacing(4)
         preset_row.addWidget(self.target_preset_combo)
         preset_row.addWidget(self.target_save_btn)
         preset_row.addWidget(self.target_delete_btn)
-        preset_v.addLayout(preset_row)
-        target_h.insertLayout(1, preset_v)
-        target_group.setLayout(target_h)
+        preset_holder.setFixedHeight(30)
+        target_grid.addWidget(preset_label, 0, 1)
+        target_grid.addWidget(preset_holder, 1, 1, alignment=Qt.AlignCenter)
+
+        target_items = [
+            ("Reverse DNS",  self.reverse_dns_disp, 200),
+            ("Start/Stop",   self.start_btn,        100),
+            ("Pause/Resume", self.pause_btn,        100),
+        ]
+        for col, (label_text, widget, width) in enumerate(target_items, start=2):
+            label = QLabel(label_text)
+            label.setAlignment(Qt.AlignCenter)
+            widget.setFixedSize(width, 30)
+            target_grid.addWidget(label, 0, col)
+            target_grid.addWidget(widget, 1, col, alignment=Qt.AlignCenter)
+        target_group.setLayout(target_grid)
 
         live_group = QGroupBox("Live Status")
         live_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         live_group.setFixedWidth(430)
-        live_h = QHBoxLayout()
-        live_h.setContentsMargins(8,8,8,8)
-        live_h.setSpacing(12)
+        live_grid = QGridLayout()
+        live_grid.setContentsMargins(8,8,8,8)
+        live_grid.setHorizontalSpacing(12)
+        live_grid.setVerticalSpacing(2)
         live_cols = [
-            ("Live Latency", self.live_latency,        100,30),
-            ("RTT Health",   self.rtt_health_label,     90,30),
-            ("Live Jitter",  self.live_jitter,         100,30),
-            ("Jitter Health", self.jitter_health_label, 90,30),
+            ("Live Latency",  self.live_latency,         100),
+            ("RTT Health",    self.rtt_health_label,      90),
+            ("Live Jitter",   self.live_jitter,          100),
+            ("Jitter Health", self.jitter_health_label,   90),
         ]
-        for lbl_text, wgt, w,h in live_cols:
-            wgt.setFixedSize(w,h)
-            v = QVBoxLayout(); v.setSpacing(2)
-            v.addWidget(QLabel(lbl_text), 0, Qt.AlignCenter)
-            v.addWidget(wgt)
-            live_h.addLayout(v)
-        live_group.setLayout(live_h)
+        for col, (label_text, widget, width) in enumerate(live_cols):
+            label = QLabel(label_text)
+            label.setAlignment(Qt.AlignCenter)
+            widget.setFixedSize(width, 30)
+            live_grid.addWidget(label, 0, col)
+            live_grid.addWidget(widget, 1, col, alignment=Qt.AlignCenter)
+        live_group.setLayout(live_grid)
 
         elapsed_group = QGroupBox("Session")
         elapsed_group.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        elapsed_h = QHBoxLayout()
-        elapsed_h.setContentsMargins(8,8,8,8)
-        v = QVBoxLayout(); v.setSpacing(2)
-        v.addWidget(QLabel("Elapsed Time"), 0, Qt.AlignCenter)
-        v.addWidget(self.elapsed_display)
-        elapsed_h.addLayout(v)
-        elapsed_group.setLayout(elapsed_h)
+        elapsed_grid = QGridLayout()
+        elapsed_grid.setContentsMargins(8,8,8,8)
+        elapsed_grid.setVerticalSpacing(2)
+        elapsed_label = QLabel("Elapsed Time")
+        elapsed_label.setAlignment(Qt.AlignCenter)
+        elapsed_grid.addWidget(elapsed_label, 0, 0)
+        elapsed_grid.addWidget(self.elapsed_display, 1, 0, alignment=Qt.AlignCenter)
+        elapsed_group.setLayout(elapsed_grid)
 
-        ping_h.addWidget(target_group)
-        ping_h.addWidget(live_group)
+        top_group_height = max(
+            target_group.sizeHint().height(),
+            live_group.sizeHint().height(),
+            elapsed_group.sizeHint().height(),
+        )
+        for group in (target_group, live_group, elapsed_group):
+            group.setFixedHeight(top_group_height)
+
+        ping_h.addWidget(target_group, 0, Qt.AlignTop)
+        ping_h.addWidget(live_group, 0, Qt.AlignTop)
         ping_h.addStretch(1)
-        ping_h.addWidget(elapsed_group)
+        ping_h.addWidget(elapsed_group, 0, Qt.AlignTop)
         ping_row.setLayout(ping_h)
+        ping_row.setFixedHeight(top_group_height + 32)
 
-        
-        
+
         # §3.B.b Thresholds & sliders
         monitoring_group = QGroupBox("Monitoring")
         monitoring_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -3485,25 +3504,120 @@ class PingerApp(QWidget):
         tools_layout = QVBoxLayout()
         tools_layout.setContentsMargins(8,8,8,8)
         tools_layout.setSpacing(10)
-        tools_layout.addWidget(self.speedtest_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.adapter_info_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.lan_throughput_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.gateway_stability_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.loaded_latency_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.route_health_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.wifi_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.speed_targets_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.port_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.http_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.dns_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.dns_compare_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.mtu_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.trace_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.alerts_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.report_tool_btn, 0, Qt.AlignCenter)
-        tools_layout.addWidget(self.help_tool_btn, 0, Qt.AlignCenter)
+        tool_buttons = [
+            self.speedtest_btn,
+            self.adapter_info_btn,
+            self.lan_throughput_btn,
+            self.gateway_stability_btn,
+            self.loaded_latency_btn,
+            self.route_health_btn,
+            self.wifi_tool_btn,
+            self.speed_targets_tool_btn,
+            self.port_tool_btn,
+            self.http_tool_btn,
+            self.dns_tool_btn,
+            self.dns_compare_tool_btn,
+            self.mtu_tool_btn,
+            self.trace_tool_btn,
+            self.alerts_btn,
+            self.report_tool_btn,
+            self.help_tool_btn,
+        ]
+        for button in tool_buttons:
+            # The buttons were originally fixed at 135 px. Release that width
+            # constraint so each one fills the usable Tools panel width.
+            button.setMinimumWidth(0)
+            button.setMaximumWidth(16777215)
+            button.setFixedHeight(30)
+            button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            tools_layout.addWidget(button)
         tools_group.setLayout(tools_layout)
         right.addWidget(tools_group)
+
+        # §3.B.i Context help / hover descriptions
+        # Keep the main window uncluttered while explaining each interactive area.
+        main_tips = {
+            "host_input": "Host name or IP address to monitor continuously, for example 8.8.8.8 or example.com.",
+            "target_preset_combo": "Select a previously saved monitoring target.",
+            "target_save_btn": "Save the current Host value as a reusable target preset.",
+            "target_delete_btn": "Delete the currently selected saved target preset.",
+            "reverse_dns_disp": "Reverse-DNS name resolved for the current target when a PTR record is available.",
+            "start_btn": "Start or stop continuous ping monitoring for the current target.",
+            "pause_btn": "Pause or resume sampling without clearing the current session statistics.",
+            "live_latency": "Most recent round-trip ping latency in milliseconds. Lower and steadier is generally better.",
+            "rtt_health_label": "Rolling latency health. Hover the status itself to see the current average RTT and packet loss used for the rating.",
+            "live_jitter": "Current jitter: the change between successive latency measurements. Lower values mean more consistent timing.",
+            "jitter_health_label": "Rolling jitter health. Hover the status itself to see the average jitter used for the rating.",
+            "elapsed_display": "Elapsed monitoring time for the current session. Pausing also pauses this timer.",
+            "lat_thresh_input": "Latency alert threshold in milliseconds. Successful pings above this value count as latency breaches when alerts are enabled.",
+            "lat_slider": "Adjust the latency alert threshold. Higher values make the latency alert less sensitive.",
+            "lat_toggle_btn": "Enable or disable latency breach detection and the latency threshold line on the graph.",
+            "loss_thresh_input": "Packet-loss alert threshold as a percentage of sent pings.",
+            "loss_slider": "Adjust the packet-loss percentage that triggers a loss alert.",
+            "loss_toggle_btn": "Enable or disable packet-loss breach detection.",
+            "jit_thresh_input": "Jitter alert threshold in milliseconds. Jitter above this value is highlighted when alerts are enabled.",
+            "jit_slider": "Adjust the jitter threshold. Lower values make the jitter alert more sensitive to timing variation.",
+            "jit_toggle_btn": "Enable or disable jitter breach detection and the jitter threshold line on the graph.",
+            "history_input": "Number of recent ping samples retained for the rolling graphs and statistics.",
+            "history_slider": "Adjust the rolling history window. Increasing it shows a longer period but makes each point more compact.",
+            "lat_count_label": "Number of latency-threshold breaches recorded in the current session.",
+            "loss_count_label": "Number of packet-loss threshold breaches recorded in the current session.",
+            "loss_value_label": "Current cumulative packet-loss percentage for the session.",
+            "reset_btn": "Clear the rolling samples, breach counters and calculated statistics without changing the target.",
+            "avg_low_label": "Average of the best (lowest-latency) 10 successful samples, or all samples if fewer than 10 exist.",
+            "avg_high_label": "Average of the worst (highest-latency) 10 successful samples, or all samples if fewer than 10 exist.",
+            "avg_comb_label": "Midpoint between the best-10 and worst-10 latency averages.",
+            "best_avg_btn": "Show or hide the best-10 latency average reference line.",
+            "worst_avg_btn": "Show or hide the worst-10 latency average reference line.",
+            "combined_avg_btn": "Show or hide the combined latency average reference line.",
+            "jit_low_label": "Lowest jitter measurement in the current rolling history.",
+            "jit_high_label": "Highest jitter measurement in the current rolling history.",
+            "jit_avg_label": "Average jitter across the current rolling history.",
+            "jit_min_btn": "Show or hide the minimum-jitter reference line.",
+            "jit_max_btn": "Show or hide the maximum-jitter reference line.",
+            "jit_avg_btn": "Show or hide the average-jitter reference line.",
+            "auto_btn": "Automatically scale the graph Y-axes so normal values and temporary spikes remain visible.",
+            "hostname_label": "Local computer host name.",
+            "host_ip_label": "Local IP address currently used for network access.",
+            "gateway_label": "Default gateway used to reach networks outside the local subnet.",
+            "public_ip_label": "Public internet-facing IP address detected for this connection.",
+            "public_isp_label": "Internet provider or network organisation associated with the public IP. Extra ASN/location detail may appear here.",
+            "host_mac_label": "MAC address detected for the primary local network interface.",
+        }
+        for attr, tip in main_tips.items():
+            widget = getattr(self, attr, None)
+            if widget is not None:
+                widget.setToolTip(tip)
+
+        tool_tips = {
+            "speedtest_btn": "Measure internet download/upload performance using the configured LibreSpeed engine.",
+            "adapter_info_btn": "Show active network-adapter details, link speed, addressing and connection state.",
+            "lan_throughput_btn": "Measure local-network throughput with the bundled iperf3 tooling.",
+            "gateway_stability_btn": "Repeatedly test the default gateway to identify local-router latency, loss or instability.",
+            "loaded_latency_btn": "Measure latency while the internet connection is under load to reveal bufferbloat or congestion.",
+            "route_health_btn": "Compare gateway, ISP-hop and public-target behaviour to help locate where latency or loss begins.",
+            "wifi_tool_btn": "Inspect Wi-Fi signal, channel, link rate and other wireless connection characteristics.",
+            "speed_targets_tool_btn": "Run or configure saved connectivity targets used for comparison testing.",
+            "port_tool_btn": "Discover local devices and perform safe TCP reachability/port checks.",
+            "http_tool_btn": "Test HTTP/HTTPS reachability, response timing and basic endpoint information.",
+            "dns_tool_btn": "Resolve DNS records and retrieve available domain/IP ownership information.",
+            "dns_compare_tool_btn": "Compare DNS resolution behaviour across multiple resolvers.",
+            "mtu_tool_btn": "Estimate the largest packet size that can travel to the target without fragmentation.",
+            "trace_tool_btn": "Trace the route to the current target and list intermediate network hops.",
+            "alerts_btn": "Open current alert and breach information.",
+            "report_tool_btn": "Generate or export a diagnostic report from collected session data.",
+            "help_tool_btn": "Open PingerApp usage help and diagnostic guidance.",
+        }
+        for attr, tip in tool_tips.items():
+            widget = getattr(self, attr, None)
+            if widget is not None:
+                widget.setToolTip(tip)
+
+        self.canvas.setToolTip(
+            "Graphs update from the rolling ping history. The upper plot shows round-trip latency; "
+            "the lower plot shows jitter (variation between consecutive latency samples). "
+            "Reference lines show enabled averages and thresholds. Auto-scale keeps real spikes visible while adapting the axis scale."
+        )
 
         right.addStretch(1)
 
@@ -8584,10 +8698,9 @@ class PingerApp(QWidget):
         self.ax_lat.yaxis.grid(True,which='minor',linestyle='--',linewidth=0.2)
         self._apply_ping_axis_ticks(max(len(raw_y), len(raw_yj), 10))
 
-        # thick 5-ms gridlines
-        top5 = ceil(self.ax_lat.get_ylim()[1]/5)*5
-        for y0 in range(0, top5+1, 5):
-            self.ax_lat.axhline(y0, color='gray',linewidth=1.0, zorder=0)
+        # Major/minor tick grids above are intentionally the only background
+        # grid. Avoid a fixed 5 ms overlay because large spikes would create
+        # dozens of heavy horizontal lines and make the graph unreadable.
 
         # 5) Latency averages & threshold
         if valid_y:
@@ -8664,11 +8777,24 @@ class PingerApp(QWidget):
 
             jymin, jymax = self.ax_jit.get_ylim()
             jaxis_span = jymax - jymin
-            if   jaxis_span<=2:   jmajor = 0.25
-            elif jaxis_span<=5:   jmajor = 0.5
-            elif jaxis_span<=10:  jmajor = 1
-            elif jaxis_span<=20:  jmajor = 2
-            else:                 jmajor = 5
+            if   jaxis_span <= 2:    jmajor = 0.25
+            elif jaxis_span <= 5:    jmajor = 0.5
+            elif jaxis_span <= 10:   jmajor = 1
+            elif jaxis_span <= 20:   jmajor = 2
+            elif jaxis_span <= 50:   jmajor = 5
+            elif jaxis_span <= 100:  jmajor = 10
+            elif jaxis_span <= 250:  jmajor = 25
+            elif jaxis_span <= 500:  jmajor = 50
+            elif jaxis_span <= 1000: jmajor = 100
+            else:
+                magnitude = 10 ** math.floor(math.log10(max(jaxis_span, 1)))
+                normalized = jaxis_span / magnitude
+                if normalized <= 2:
+                    jmajor = magnitude / 5
+                elif normalized <= 5:
+                    jmajor = magnitude / 2
+                else:
+                    jmajor = magnitude
 
             self.ax_jit.yaxis.set_major_locator(MultipleLocator(jmajor))
             jminor = jmajor/2
