@@ -1,0 +1,28 @@
+name: Feature or improvement idea
+description: Suggest an improvement to PingerApp
+title: "[Idea] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like PingerApp to do?
+      description: Describe the improvement in plain language.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Explain when this would be useful and what is difficult today.
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Suggested workflow or behaviour
+      description: If you have a preferred screen, control, output, or workflow, describe it here.
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add screenshots, examples, or related tools if they help explain the idea.
