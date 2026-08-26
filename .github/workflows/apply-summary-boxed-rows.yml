@@ -1,0 +1,32 @@
+name: Apply summary boxed rows
+
+on:
+  push:
+    branches:
+      - ui/responsive-main-layout
+    paths:
+      - "scripts/patch_summary_boxed_rows.py"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ui/responsive-main-layout
+      - run: python scripts/patch_summary_boxed_rows.py
+      - run: |
+          python -m py_compile PingerApp/PingerApp.py
+          git diff --check
+      - shell: bash
+        run: |
+          rm -f scripts/patch_summary_boxed_rows.py .github/workflows/apply-summary-boxed-rows.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Add boxed summary information rows"
+          git push origin HEAD:ui/responsive-main-layout
