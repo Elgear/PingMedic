@@ -16,3 +16,5 @@ for attr in ("best_avg_btn", "worst_avg_btn", "combined_avg_btn"):
     text = text.replace(marker, f"        self.{attr}.setMinimumWidth(112)\n" + marker, 1)
 
 path.write_text(text, encoding="utf-8")
+
+# trigger
