@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Triggered by the temporary branch-only workflow; removed after patching.
 path = Path("PingerApp/PingerApp.py")
 text = path.read_text(encoding="utf-8")
 
