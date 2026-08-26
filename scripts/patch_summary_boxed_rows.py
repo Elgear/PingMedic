@@ -54,3 +54,5 @@ for old_block, new_block in repls.items():
     text = text.replace(old_block, new_block, 1)
 
 path.write_text(text, encoding="utf-8")
+
+# trigger
