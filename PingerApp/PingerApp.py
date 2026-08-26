@@ -3413,6 +3413,22 @@ class PingerApp(QWidget):
         monitoring_layout.addWidget(threshold_group)
                 
         # §3.B.c Alert-Counts panel
+        # Give summary values a subtle cell treatment for clearer row scanning
+        # without making the interface visually heavy.
+        summary_cell_style = (
+            "QLabel { border: 1px solid #d8d8d8; border-radius: 2px; "
+            "padding: 3px 6px; background-color: #fafafa; }"
+        )
+
+        def style_summary_cell(widget):
+            widget.setStyleSheet(summary_cell_style)
+            widget.setMinimumHeight(24)
+            return widget
+
+        def summary_caption(text):
+            label = QLabel(text)
+            return style_summary_cell(label)
+
         alert_group = QGroupBox("Alert Counts")
         alert_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         alert_group.setMinimumSize(175,120)
@@ -3420,12 +3436,15 @@ class PingerApp(QWidget):
         ag.setHorizontalSpacing(8); ag.setVerticalSpacing(6)
         ag.setColumnStretch(0, 1)
         ag.setColumnStretch(1, 1)
-        ag.addWidget(QLabel("Latency breaches:"), 0,0)
-        ag.addWidget(self.lat_count_label,        0,1)
-        ag.addWidget(QLabel("Loss breaches:"),    1,0)
-        ag.addWidget(self.loss_count_label,       1,1)
-        ag.addWidget(QLabel("Packet Loss (%):"),  2,0)
-        ag.addWidget(self.loss_value_label,       2,1)
+        style_summary_cell(self.lat_count_label)
+        style_summary_cell(self.loss_count_label)
+        style_summary_cell(self.loss_value_label)
+        ag.addWidget(summary_caption("Latency breaches:"), 0,0)
+        ag.addWidget(self.lat_count_label,                     0,1)
+        ag.addWidget(summary_caption("Loss breaches:"),    1,0)
+        ag.addWidget(self.loss_count_label,                    1,1)
+        ag.addWidget(summary_caption("Packet Loss (%):"),  2,0)
+        ag.addWidget(self.loss_value_label,                    2,1)
         ag.addWidget(self.reset_btn,              3,0,1,2)
         alert_group.setLayout(ag)
 
@@ -3439,14 +3458,17 @@ class PingerApp(QWidget):
         sg.setColumnStretch(1, 1)
         sg.setColumnStretch(2, 0)
         sg.setColumnMinimumWidth(2, 112)
-        sg.addWidget(QLabel("Avg best 10:"),  0,0)
-        sg.addWidget(self.avg_low_label,      0,1)
+        style_summary_cell(self.avg_low_label)
+        sg.addWidget(summary_caption("Avg best 10:"),  0,0)
+        sg.addWidget(self.avg_low_label,                    0,1)
         sg.addWidget(self.best_avg_btn,       0,2)
-        sg.addWidget(QLabel("Avg worst 10:"), 1,0)
-        sg.addWidget(self.avg_high_label,     1,1)
+        style_summary_cell(self.avg_high_label)
+        sg.addWidget(summary_caption("Avg worst 10:"), 1,0)
+        sg.addWidget(self.avg_high_label,                    1,1)
         sg.addWidget(self.worst_avg_btn,      1,2)
-        sg.addWidget(QLabel("Avg combined:"), 2,0)
-        sg.addWidget(self.avg_comb_label,     2,1)
+        style_summary_cell(self.avg_comb_label)
+        sg.addWidget(summary_caption("Avg combined:"), 2,0)
+        sg.addWidget(self.avg_comb_label,                    2,1)
         sg.addWidget(self.combined_avg_btn,   2,2)
         stats_group.setLayout(sg)
 
@@ -3456,14 +3478,17 @@ class PingerApp(QWidget):
         jit_group.setMinimumSize(255,120)
         jl = QGridLayout(); jl.setContentsMargins(8,8,8,8)
         jl.setHorizontalSpacing(12); jl.setVerticalSpacing(6)
-        jl.addWidget(QLabel("Min jitter:"),   0,0)
-        jl.addWidget(self.jit_low_label,      0,1)
+        style_summary_cell(self.jit_low_label)
+        jl.addWidget(summary_caption("Min jitter:"), 0,0)
+        jl.addWidget(self.jit_low_label,                 0,1)
         jl.addWidget(self.jit_min_btn,        0,2)
-        jl.addWidget(QLabel("Max jitter:"),   1,0)
-        jl.addWidget(self.jit_high_label,     1,1)
+        style_summary_cell(self.jit_high_label)
+        jl.addWidget(summary_caption("Max jitter:"), 1,0)
+        jl.addWidget(self.jit_high_label,                 1,1)
         jl.addWidget(self.jit_max_btn,        1,2)
-        jl.addWidget(QLabel("Avg jitter:"),   2,0)
-        jl.addWidget(self.jit_avg_label,      2,1)
+        style_summary_cell(self.jit_avg_label)
+        jl.addWidget(summary_caption("Avg jitter:"), 2,0)
+        jl.addWidget(self.jit_avg_label,                 2,1)
         jl.addWidget(self.jit_avg_btn,        2,2)
         jit_group.setLayout(jl)
 
@@ -3486,7 +3511,8 @@ class PingerApp(QWidget):
         for row, (label_text, value_label) in enumerate(host_info_rows):
             value_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
             value_label.setWordWrap(False)
-            hi.addWidget(QLabel(label_text), row, 0)
+            style_summary_cell(value_label)
+            hi.addWidget(summary_caption(label_text), row, 0)
             hi.addWidget(value_label, row, 1)
         host_info_group.setLayout(hi)
 
