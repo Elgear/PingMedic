@@ -3016,10 +3016,13 @@ class PingerApp(QWidget):
 
         # §3.A.g Avg-line toggles
         self.best_avg_btn     = QPushButton("Best Avg: ON")
+        self.best_avg_btn.setMinimumWidth(112)
         self.best_avg_btn.setCheckable(True); self.best_avg_btn.setChecked(True)
         self.worst_avg_btn    = QPushButton("Worst Avg: ON")
+        self.worst_avg_btn.setMinimumWidth(112)
         self.worst_avg_btn.setCheckable(True); self.worst_avg_btn.setChecked(True)
         self.combined_avg_btn = QPushButton("Comb Avg: ON")
+        self.combined_avg_btn.setMinimumWidth(112)
         self.combined_avg_btn.setCheckable(True); self.combined_avg_btn.setChecked(True)
         self.best_avg_btn.toggled.connect(self.toggle_best_avg)
         self.worst_avg_btn.toggled.connect(self.toggle_worst_avg)
@@ -3429,9 +3432,13 @@ class PingerApp(QWidget):
         # §3.B.d Latency-Stats panel
         stats_group = QGroupBox("Latency Stats")
         stats_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        stats_group.setMinimumSize(280,120)
+        stats_group.setMinimumSize(330,120)
         sg = QGridLayout(); sg.setContentsMargins(8,8,8,8)
         sg.setHorizontalSpacing(12); sg.setVerticalSpacing(6)
+        sg.setColumnStretch(0, 2)
+        sg.setColumnStretch(1, 1)
+        sg.setColumnStretch(2, 0)
+        sg.setColumnMinimumWidth(2, 112)
         sg.addWidget(QLabel("Avg best 10:"),  0,0)
         sg.addWidget(self.avg_low_label,      0,1)
         sg.addWidget(self.best_avg_btn,       0,2)
