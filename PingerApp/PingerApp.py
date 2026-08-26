@@ -8709,13 +8709,26 @@ class PingerApp(QWidget):
             self._set_empty_axes()
 
         ymin, ymax = self.ax_lat.get_ylim(); span = ymax - ymin
-        if   span<=5:    major = 0.5
-        elif span<=10:   major = 1
-        elif span<=20:   major = 2
-        elif span<=50:   major = 5
-        elif span<=100:  major = 10
-        elif span<=200:  major = 20
-        else:            major = 50
+        if   span <= 5:     major = 0.5
+        elif span <= 10:    major = 1
+        elif span <= 20:    major = 2
+        elif span <= 50:    major = 5
+        elif span <= 100:   major = 10
+        elif span <= 250:   major = 25
+        elif span <= 500:   major = 50
+        elif span <= 1000:  major = 100
+        elif span <= 2500:  major = 250
+        elif span <= 5000:  major = 500
+        elif span <= 10000: major = 1000
+        else:
+            magnitude = 10 ** math.floor(math.log10(max(span, 1)))
+            normalized = span / magnitude
+            if normalized <= 2:
+                major = magnitude / 5
+            elif normalized <= 5:
+                major = magnitude / 2
+            else:
+                major = magnitude
 
         self.ax_lat.yaxis.set_major_locator(MultipleLocator(major))
         minor = major/5
