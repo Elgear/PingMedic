@@ -2728,9 +2728,19 @@ class PingerApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Home Pinger")
-        self.move(100,100)
-        self.resize(1460, 900)
-        self.setMinimumSize(1440, 940)
+        self.move(60, 40)
+        # Start large enough to show the full diagnostic layout comfortably,
+        # while keeping the window resizable for laptops, DPI scaling and
+        # larger desktop displays.
+        screen = QApplication.primaryScreen()
+        if screen is not None:
+            available = screen.availableGeometry()
+            start_width = min(1600, max(1200, int(available.width() * 0.96)))
+            start_height = min(1000, max(760, int(available.height() * 0.94)))
+            self.resize(start_width, start_height)
+        else:
+            self.resize(1500, 940)
+        self.setMinimumSize(1180, 740)
 
         # §3.A Initialization ────────────────────────────────────────────────────
 
@@ -3402,7 +3412,7 @@ class PingerApp(QWidget):
         # §3.B.c Alert-Counts panel
         alert_group = QGroupBox("Alert Counts")
         alert_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        alert_group.setMinimumSize(165,120)
+        alert_group.setMinimumSize(175,120)
         ag = QGridLayout(); ag.setContentsMargins(8,8,8,8)
         ag.setHorizontalSpacing(8); ag.setVerticalSpacing(6)
         ag.setColumnStretch(0, 1)
@@ -3419,7 +3429,7 @@ class PingerApp(QWidget):
         # §3.B.d Latency-Stats panel
         stats_group = QGroupBox("Latency Stats")
         stats_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        stats_group.setMinimumSize(235,120)
+        stats_group.setMinimumSize(280,120)
         sg = QGridLayout(); sg.setContentsMargins(8,8,8,8)
         sg.setHorizontalSpacing(12); sg.setVerticalSpacing(6)
         sg.addWidget(QLabel("Avg best 10:"),  0,0)
@@ -3436,7 +3446,7 @@ class PingerApp(QWidget):
         # §3.B.e Jitter-Stats panel
         jit_group = QGroupBox("Jitter Stats")
         jit_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        jit_group.setMinimumSize(215,120)
+        jit_group.setMinimumSize(255,120)
         jl = QGridLayout(); jl.setContentsMargins(8,8,8,8)
         jl.setHorizontalSpacing(12); jl.setVerticalSpacing(6)
         jl.addWidget(QLabel("Min jitter:"),   0,0)
@@ -3453,9 +3463,11 @@ class PingerApp(QWidget):
         # §3.B.f Host-Info panel
         host_info_group = QGroupBox("Host Info")
         host_info_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        host_info_group.setMinimumSize(260,120)
+        host_info_group.setMinimumSize(320,120)
         hi = QGridLayout(); hi.setContentsMargins(8,8,8,8)
         hi.setHorizontalSpacing(8); hi.setVerticalSpacing(4)
+        hi.setColumnStretch(0, 0)
+        hi.setColumnStretch(1, 1)
         host_info_rows = [
             ("Host:", self.hostname_label),
             ("Local IP:", self.host_ip_label),
@@ -3471,12 +3483,24 @@ class PingerApp(QWidget):
             hi.addWidget(value_label, row, 1)
         host_info_group.setLayout(hi)
 
+        # Keep the summary row visually balanced. Host Info has the most rows,
+        # so use the tallest natural size for all four panels.
+        summary_group_height = max(
+            alert_group.sizeHint().height(),
+            stats_group.sizeHint().height(),
+            jit_group.sizeHint().height(),
+            host_info_group.sizeHint().height(),
+        )
+        for group in (alert_group, stats_group, jit_group, host_info_group):
+            group.setFixedHeight(summary_group_height)
+
         # combine panels
         panel_h = QHBoxLayout(); panel_h.setAlignment(Qt.AlignLeft)
-        panel_h.addWidget(alert_group, 1)
-        panel_h.addWidget(stats_group, 2)
-        panel_h.addWidget(jit_group, 2)
-        panel_h.addWidget(host_info_group, 2)
+        panel_h.setSpacing(8)
+        panel_h.addWidget(alert_group, 2)
+        panel_h.addWidget(stats_group, 3)
+        panel_h.addWidget(jit_group, 3)
+        panel_h.addWidget(host_info_group, 4)
         monitoring_layout.addLayout(panel_h)
         monitoring_group.setLayout(monitoring_layout)
         left.addWidget(monitoring_group)
