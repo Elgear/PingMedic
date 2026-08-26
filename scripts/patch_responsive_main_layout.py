@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Trigger branch-only patch workflow; this helper is removed after use.
 path = Path("PingerApp/PingerApp.py")
 text = path.read_text(encoding="utf-8")
 
