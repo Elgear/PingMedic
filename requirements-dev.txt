@@ -1,1 +1,2 @@
 PyInstaller
+# ci validation trigger
