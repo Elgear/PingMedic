@@ -11,9 +11,7 @@ replacements = {
         ('PingerApp includes iperf3 at', 'PingMedic includes iperf3 at'),
         ('PingerApp_Report_', 'PingMedic_Report_'),
     ],
-    Path('PingerApp.spec'): [
-        ('name="PingerApp"', 'name="PingMedic"'),
-    ],
+    Path('PingerApp.spec'): [('name="PingerApp"', 'name="PingMedic"')],
     Path('installer/PingerApp.iss'): [
         ('#define MyAppName "PingerApp"', '#define MyAppName "PingMedic"'),
         ('#define MyAppDisplayName "Home Pinger"', '#define MyAppDisplayName "PingMedic"'),
@@ -23,16 +21,7 @@ replacements = {
         ('OutputBaseFilename=PingerApp_Setup_{#MyAppVersion}', 'OutputBaseFilename=PingMedic_Setup_{#MyAppVersion}'),
         ('Source: "..\\dist\\PingerApp\\*"', 'Source: "..\\dist\\PingMedic\\*"'),
     ],
-    Path('.github/workflows/windows-installer.yml'): [
-        ('dist\\PingerApp\\PingerApp.exe', 'dist\\PingMedic\\PingMedic.exe'),
-        ('PingerApp.exe was not created', 'PingMedic.exe was not created'),
-        ('release\\PingerApp_Setup_*.exe', 'release\\PingMedic_Setup_*.exe'),
-        ('name: PingerApp-Windows-Installer-${{ env.PINGERAPP_VERSION }}', 'name: PingMedic-Windows-Installer-${{ env.PINGERAPP_VERSION }}'),
-        ('path: release/PingerApp_Setup_*.exe', 'path: release/PingMedic_Setup_*.exe'),
-    ],
-    Path('scripts/build_windows.ps1'): [
-        ('dist\\PingerApp\\PingerApp.exe', 'dist\\PingMedic\\PingMedic.exe'),
-    ],
+    Path('scripts/build_windows.ps1'): [('dist\\PingerApp\\PingerApp.exe', 'dist\\PingMedic\\PingMedic.exe')],
     Path('scripts/build_installer.ps1'): [
         ('dist\\PingerApp\\PingerApp.exe', 'dist\\PingMedic\\PingMedic.exe'),
         ('installer_output\\PingerAppSetup-0.1.0.exe', 'installer_output\\PingMedicSetup-0.1.0.exe'),
@@ -54,4 +43,4 @@ for path, pairs in replacements.items():
         text = text.replace(old, new)
     path.write_text(text, encoding='utf-8')
 
-# trigger 3
+# trigger 4
