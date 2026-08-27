@@ -1,4 +1,4 @@
-# PingerApp
+# PingMedic
 
 PyQt5 desktop tool for monitoring latency, packet loss, jitter, DNS lookups, and traceroute output.
 
@@ -12,7 +12,7 @@ Windows builds are published from GitHub Releases:
 https://github.com/Elgear/PingerAPP/releases
 ```
 
-For version `0.1.0`, download `PingerAppSetup-0.1.0.exe` and verify the checksum:
+For version `0.1.0`, download `PingMedic_Setup_0.1.0.exe` and verify the checksum:
 
 ```text
 SHA256 F27DD934522CE6BCD09F4198D50D78094D54023C5320B10AF443292E8B9BB340
@@ -57,13 +57,13 @@ MAC addresses can only be discovered when the target exposes them on the local n
 
 ## Security And Privacy
 
-PingerApp is a local troubleshooting tool and does not require accounts, API keys, or secrets. Some diagnostics intentionally contact selected targets, public DNS resolvers, public IP metadata services, or public LibreSpeed servers when those tools are run.
+PingMedic is a local troubleshooting tool and does not require accounts, API keys, or secrets. Some diagnostics intentionally contact selected targets, public DNS resolvers, public IP metadata services, or public LibreSpeed servers when those tools are run.
 
 Only run Network Scanner against networks and hosts you own or are authorized to troubleshoot. Security reporting guidance is in `SECURITY.md`.
 
 ## License
 
-PingerApp source code is licensed under GPL-3.0-only. This matches the GPL distribution path for PyQt5. Third-party components remain under their own licenses; see `THIRD_PARTY_NOTICES.md`.
+PingMedic source code is licensed under GPL-3.0-only. This matches the GPL distribution path for PyQt5. Third-party components remain under their own licenses; see `THIRD_PARTY_NOTICES.md`.
 
 ## LibreSpeed Speed Test
 
@@ -98,7 +98,7 @@ For a local Windows build, use the PyInstaller wrapper script:
 .\scripts\build_windows.ps1 -Clean
 ```
 
-The build output is written to `dist\PingerApp\PingerApp.exe`. Full packaging notes are in `PACKAGING.md`. Packaging should use the dedicated `.packaging-venv` created from stable Python 3.13; do not build the release installer from the older prerelease virtual environments.
+The build output is written to `dist\PingMedic\PingMedic.exe`. Full packaging notes are in `PACKAGING.md`. Packaging should use the dedicated `.packaging-venv` created from stable Python 3.13; do not build the release installer from the older prerelease virtual environments.
 
 For a PC install, build the PyInstaller output and then run the Inno Setup wrapper:
 
@@ -107,7 +107,7 @@ For a PC install, build the PyInstaller output and then run the Inno Setup wrapp
 .\scripts\build_installer.ps1
 ```
 
-The installer script is `installer\PingerApp.iss`, and the generated setup executable is written to `installer_output\PingerAppSetup-0.1.0.exe`. The installer includes:
+The installer script is `installer\PingerApp.iss`, and the generated setup executable is written to `installer_output\PingMedic_Setup_0.1.0.exe`. The installer includes:
 
 - the PingerApp executable and Python runtime bundle,
 - required Python libraries,

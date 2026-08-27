@@ -2679,7 +2679,7 @@ class HttpTestWorker(QThread):
         request = urllib.request.Request(
             url,
             method=self.method,
-            headers={"User-Agent": "PingerApp/1.0"},
+            headers={"User-Agent": "PingMedic/1.0"},
         )
 
         started = time.perf_counter()
@@ -2727,7 +2727,7 @@ class PingerApp(QWidget):
     """§3 Main application window for Home Pinger."""
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Home Pinger")
+        self.setWindowTitle("PingMedic")
         self.move(60, 40)
         # Start large enough to show the full diagnostic layout comfortably,
         # while keeping the window resizable for laptops, DPI scaling and
@@ -3250,7 +3250,7 @@ class PingerApp(QWidget):
         self.help_text_box = None
         self.help_tool_btn = QPushButton("Help")
         self.help_tool_btn.setFixedSize(135, 30)
-        self.help_tool_btn.setToolTip("Open PingerApp help and field guide")
+        self.help_tool_btn.setToolTip("Open PingMedic help and field guide")
         self.help_tool_btn.clicked.connect(self.show_help_window)
 
         # §3.A.k Host-info fields
@@ -3663,7 +3663,7 @@ class PingerApp(QWidget):
             "trace_tool_btn": "Trace the route to the current target and list intermediate network hops.",
             "alerts_btn": "Open current alert and breach information.",
             "report_tool_btn": "Generate or export a diagnostic report from collected session data.",
-            "help_tool_btn": "Open PingerApp usage help and diagnostic guidance.",
+            "help_tool_btn": "Open PingMedic usage help and diagnostic guidance.",
         }
         for attr, tip in tool_tips.items():
             widget = getattr(self, attr, None)
@@ -7000,8 +7000,8 @@ class PingerApp(QWidget):
         </style>
         </head>
         <body>
-        <h1>PingerApp Help</h1>
-        <p>PingerApp is a local network troubleshooting tool. It is designed for checking your own connection, devices, services, and ISP path.</p>
+        <h1>PingMedic Help</h1>
+        <p>PingMedic is a local network troubleshooting tool. It is designed for checking your own connection, devices, services, and ISP path.</p>
 
         <h2>Main Window</h2>
         <h3>Ping Panel</h3>
@@ -7068,7 +7068,7 @@ class PingerApp(QWidget):
         <h3>LAN Throughput</h3>
         <ul>
             <li>Uses iperf3 to measure local network throughput between two devices on your LAN.</li>
-            <li>PingerApp includes iperf3 at <code>tools/iperf3/iperf3.exe</code> and can also use iperf3 from PATH.</li>
+            <li>PingMedic includes iperf3 at <code>tools/iperf3/iperf3.exe</code> and can also use iperf3 from PATH.</li>
             <li>On one machine, open LAN Throughput and click <b>Start Server</b>. On the other machine, enter the server machine IP and click <b>Run LAN Test</b>.</li>
             <li>Do not use the gateway/router IP unless that device is actually running iperf3. Most home routers do not.</li>
             <li><b>Upload to server</b> sends traffic from this PC to the server. <b>Download from server</b> uses iperf3 reverse mode.</li>
@@ -7276,7 +7276,7 @@ class PingerApp(QWidget):
         if self.report_preview_box is not None:
             self.report_preview_box.setPlainText(report_text)
 
-        default_name = f"PingerApp_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        default_name = f"PingMedic_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         default_path = self._data_file_path(default_name)
         path, _ = QFileDialog.getSaveFileName(
             self.report_window or self,
@@ -7301,7 +7301,7 @@ class PingerApp(QWidget):
 
     def save_report_csv(self):
         rows = self.build_report_csv_rows()
-        default_name = f"PingerApp_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        default_name = f"PingMedic_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         default_path = self._data_file_path(default_name)
         path, _ = QFileDialog.getSaveFileName(
             self.report_window or self,

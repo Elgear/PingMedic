@@ -18,7 +18,7 @@ if ($Clean) {
 
 & $Python -m PyInstaller --noconfirm ".\PingerApp.spec"
 
-$exe = Join-Path $repoRoot "dist\PingerApp\PingerApp.exe"
+$exe = Join-Path $repoRoot "dist\PingMedic\PingMedic.exe"
 if (-not (Test-Path -LiteralPath $exe)) {
     throw "Build finished but executable was not found: $exe"
 }
