@@ -29,3 +29,5 @@ if 'panel_h.addWidget(stats_group, 3)' not in text or 'panel_h.addWidget(jit_gro
     raise SystemExit('Expected summary stretch factors not found')
 
 path.write_text(text, encoding='utf-8')
+
+# trigger
