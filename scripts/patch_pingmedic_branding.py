@@ -43,4 +43,4 @@ for path, pairs in replacements.items():
         text = text.replace(old, new)
     path.write_text(text, encoding='utf-8')
 
-# trigger 4
+# trigger 5
