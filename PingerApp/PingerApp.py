@@ -2679,7 +2679,7 @@ class HttpTestWorker(QThread):
         request = urllib.request.Request(
             url,
             method=self.method,
-            headers={"User-Agent": "PingerApp/1.0"},
+            headers={"User-Agent": "PingMedic/1.0"},
         )
 
         started = time.perf_counter()
@@ -2727,10 +2727,20 @@ class PingerApp(QWidget):
     """§3 Main application window for Home Pinger."""
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Home Pinger")
-        self.move(100,100)
-        self.resize(1460, 900)
-        self.setMinimumSize(1440, 940)
+        self.setWindowTitle("PingMedic")
+        self.move(60, 40)
+        # Start large enough to show the full diagnostic layout comfortably,
+        # while keeping the window resizable for laptops, DPI scaling and
+        # larger desktop displays.
+        screen = QApplication.primaryScreen()
+        if screen is not None:
+            available = screen.availableGeometry()
+            start_width = min(1600, max(1200, int(available.width() * 0.96)))
+            start_height = min(1000, max(760, int(available.height() * 0.94)))
+            self.resize(start_width, start_height)
+        else:
+            self.resize(1500, 940)
+        self.setMinimumSize(1180, 740)
 
         # §3.A Initialization ────────────────────────────────────────────────────
 
@@ -3006,10 +3016,13 @@ class PingerApp(QWidget):
 
         # §3.A.g Avg-line toggles
         self.best_avg_btn     = QPushButton("Best Avg: ON")
+        self.best_avg_btn.setMinimumWidth(92)
         self.best_avg_btn.setCheckable(True); self.best_avg_btn.setChecked(True)
         self.worst_avg_btn    = QPushButton("Worst Avg: ON")
+        self.worst_avg_btn.setMinimumWidth(92)
         self.worst_avg_btn.setCheckable(True); self.worst_avg_btn.setChecked(True)
         self.combined_avg_btn = QPushButton("Comb Avg: ON")
+        self.combined_avg_btn.setMinimumWidth(92)
         self.combined_avg_btn.setCheckable(True); self.combined_avg_btn.setChecked(True)
         self.best_avg_btn.toggled.connect(self.toggle_best_avg)
         self.worst_avg_btn.toggled.connect(self.toggle_worst_avg)
@@ -3237,7 +3250,7 @@ class PingerApp(QWidget):
         self.help_text_box = None
         self.help_tool_btn = QPushButton("Help")
         self.help_tool_btn.setFixedSize(135, 30)
-        self.help_tool_btn.setToolTip("Open PingerApp help and field guide")
+        self.help_tool_btn.setToolTip("Open PingMedic help and field guide")
         self.help_tool_btn.clicked.connect(self.show_help_window)
 
         # §3.A.k Host-info fields
@@ -3400,62 +3413,93 @@ class PingerApp(QWidget):
         monitoring_layout.addWidget(threshold_group)
                 
         # §3.B.c Alert-Counts panel
+        # Give summary values a subtle cell treatment for clearer row scanning
+        # without making the interface visually heavy.
+        summary_cell_style = (
+            "QLabel { border: 1px solid #d8d8d8; border-radius: 2px; "
+            "padding: 3px 6px; background-color: #fafafa; }"
+        )
+
+        def style_summary_cell(widget):
+            widget.setStyleSheet(summary_cell_style)
+            widget.setMinimumHeight(24)
+            return widget
+
+        def summary_caption(text):
+            label = QLabel(text)
+            return style_summary_cell(label)
+
         alert_group = QGroupBox("Alert Counts")
-        alert_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        alert_group.setMinimumSize(165,120)
+        alert_group.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        alert_group.setMinimumSize(0,120)
         ag = QGridLayout(); ag.setContentsMargins(8,8,8,8)
         ag.setHorizontalSpacing(8); ag.setVerticalSpacing(6)
         ag.setColumnStretch(0, 1)
         ag.setColumnStretch(1, 1)
-        ag.addWidget(QLabel("Latency breaches:"), 0,0)
-        ag.addWidget(self.lat_count_label,        0,1)
-        ag.addWidget(QLabel("Loss breaches:"),    1,0)
-        ag.addWidget(self.loss_count_label,       1,1)
-        ag.addWidget(QLabel("Packet Loss (%):"),  2,0)
-        ag.addWidget(self.loss_value_label,       2,1)
+        style_summary_cell(self.lat_count_label)
+        style_summary_cell(self.loss_count_label)
+        style_summary_cell(self.loss_value_label)
+        ag.addWidget(summary_caption("Latency breaches:"), 0,0)
+        ag.addWidget(self.lat_count_label,                     0,1)
+        ag.addWidget(summary_caption("Loss breaches:"),    1,0)
+        ag.addWidget(self.loss_count_label,                    1,1)
+        ag.addWidget(summary_caption("Packet Loss (%):"),  2,0)
+        ag.addWidget(self.loss_value_label,                    2,1)
         ag.addWidget(self.reset_btn,              3,0,1,2)
         alert_group.setLayout(ag)
 
         # §3.B.d Latency-Stats panel
         stats_group = QGroupBox("Latency Stats")
-        stats_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        stats_group.setMinimumSize(235,120)
+        stats_group.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        stats_group.setMinimumSize(0,120)
         sg = QGridLayout(); sg.setContentsMargins(8,8,8,8)
-        sg.setHorizontalSpacing(12); sg.setVerticalSpacing(6)
-        sg.addWidget(QLabel("Avg best 10:"),  0,0)
-        sg.addWidget(self.avg_low_label,      0,1)
+        sg.setHorizontalSpacing(8); sg.setVerticalSpacing(6)
+        sg.setColumnStretch(0, 2)
+        sg.setColumnStretch(1, 1)
+        sg.setColumnStretch(2, 0)
+        sg.setColumnMinimumWidth(2, 92)
+        style_summary_cell(self.avg_low_label)
+        sg.addWidget(summary_caption("Avg best 10:"),  0,0)
+        sg.addWidget(self.avg_low_label,                    0,1)
         sg.addWidget(self.best_avg_btn,       0,2)
-        sg.addWidget(QLabel("Avg worst 10:"), 1,0)
-        sg.addWidget(self.avg_high_label,     1,1)
+        style_summary_cell(self.avg_high_label)
+        sg.addWidget(summary_caption("Avg worst 10:"), 1,0)
+        sg.addWidget(self.avg_high_label,                    1,1)
         sg.addWidget(self.worst_avg_btn,      1,2)
-        sg.addWidget(QLabel("Avg combined:"), 2,0)
-        sg.addWidget(self.avg_comb_label,     2,1)
+        style_summary_cell(self.avg_comb_label)
+        sg.addWidget(summary_caption("Avg combined:"), 2,0)
+        sg.addWidget(self.avg_comb_label,                    2,1)
         sg.addWidget(self.combined_avg_btn,   2,2)
         stats_group.setLayout(sg)
 
         # §3.B.e Jitter-Stats panel
         jit_group = QGroupBox("Jitter Stats")
-        jit_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        jit_group.setMinimumSize(215,120)
+        jit_group.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        jit_group.setMinimumSize(0,120)
         jl = QGridLayout(); jl.setContentsMargins(8,8,8,8)
         jl.setHorizontalSpacing(12); jl.setVerticalSpacing(6)
-        jl.addWidget(QLabel("Min jitter:"),   0,0)
-        jl.addWidget(self.jit_low_label,      0,1)
+        style_summary_cell(self.jit_low_label)
+        jl.addWidget(summary_caption("Min jitter:"), 0,0)
+        jl.addWidget(self.jit_low_label,                 0,1)
         jl.addWidget(self.jit_min_btn,        0,2)
-        jl.addWidget(QLabel("Max jitter:"),   1,0)
-        jl.addWidget(self.jit_high_label,     1,1)
+        style_summary_cell(self.jit_high_label)
+        jl.addWidget(summary_caption("Max jitter:"), 1,0)
+        jl.addWidget(self.jit_high_label,                 1,1)
         jl.addWidget(self.jit_max_btn,        1,2)
-        jl.addWidget(QLabel("Avg jitter:"),   2,0)
-        jl.addWidget(self.jit_avg_label,      2,1)
+        style_summary_cell(self.jit_avg_label)
+        jl.addWidget(summary_caption("Avg jitter:"), 2,0)
+        jl.addWidget(self.jit_avg_label,                 2,1)
         jl.addWidget(self.jit_avg_btn,        2,2)
         jit_group.setLayout(jl)
 
         # §3.B.f Host-Info panel
         host_info_group = QGroupBox("Host Info")
         host_info_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        host_info_group.setMinimumSize(260,120)
+        host_info_group.setMinimumSize(320,120)
         hi = QGridLayout(); hi.setContentsMargins(8,8,8,8)
         hi.setHorizontalSpacing(8); hi.setVerticalSpacing(4)
+        hi.setColumnStretch(0, 0)
+        hi.setColumnStretch(1, 1)
         host_info_rows = [
             ("Host:", self.hostname_label),
             ("Local IP:", self.host_ip_label),
@@ -3467,16 +3511,29 @@ class PingerApp(QWidget):
         for row, (label_text, value_label) in enumerate(host_info_rows):
             value_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
             value_label.setWordWrap(False)
-            hi.addWidget(QLabel(label_text), row, 0)
+            style_summary_cell(value_label)
+            hi.addWidget(summary_caption(label_text), row, 0)
             hi.addWidget(value_label, row, 1)
         host_info_group.setLayout(hi)
 
+        # Keep the summary row visually balanced. Host Info has the most rows,
+        # so use the tallest natural size for all four panels.
+        summary_group_height = max(
+            alert_group.sizeHint().height(),
+            stats_group.sizeHint().height(),
+            jit_group.sizeHint().height(),
+            host_info_group.sizeHint().height(),
+        )
+        for group in (alert_group, stats_group, jit_group, host_info_group):
+            group.setFixedHeight(summary_group_height)
+
         # combine panels
         panel_h = QHBoxLayout(); panel_h.setAlignment(Qt.AlignLeft)
-        panel_h.addWidget(alert_group, 1)
-        panel_h.addWidget(stats_group, 2)
-        panel_h.addWidget(jit_group, 2)
-        panel_h.addWidget(host_info_group, 2)
+        panel_h.setSpacing(8)
+        panel_h.addWidget(alert_group, 3)
+        panel_h.addWidget(stats_group, 3)
+        panel_h.addWidget(jit_group, 3)
+        panel_h.addWidget(host_info_group, 4)
         monitoring_layout.addLayout(panel_h)
         monitoring_group.setLayout(monitoring_layout)
         left.addWidget(monitoring_group)
@@ -3606,7 +3663,7 @@ class PingerApp(QWidget):
             "trace_tool_btn": "Trace the route to the current target and list intermediate network hops.",
             "alerts_btn": "Open current alert and breach information.",
             "report_tool_btn": "Generate or export a diagnostic report from collected session data.",
-            "help_tool_btn": "Open PingerApp usage help and diagnostic guidance.",
+            "help_tool_btn": "Open PingMedic usage help and diagnostic guidance.",
         }
         for attr, tip in tool_tips.items():
             widget = getattr(self, attr, None)
@@ -3683,8 +3740,14 @@ class PingerApp(QWidget):
             ping3._socket = None
 
     def _data_file_path(self, filename: str):
-        root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
-        return os.path.join(root, "data", filename)
+        """Return a writable per-user data path for presets, history and reports."""
+        if platform.system() == "Windows":
+            base = os.environ.get("LOCALAPPDATA") or os.environ.get("APPDATA") or os.path.expanduser("~")
+            root = os.path.join(base, "PingerApp", "data")
+        else:
+            base = os.environ.get("XDG_DATA_HOME") or os.path.join(os.path.expanduser("~"), ".local", "share")
+            root = os.path.join(base, "PingerApp", "data")
+        return os.path.join(root, filename)
 
     def _target_presets_path(self):
         return self._data_file_path("target_presets.json")
@@ -6937,8 +7000,8 @@ class PingerApp(QWidget):
         </style>
         </head>
         <body>
-        <h1>PingerApp Help</h1>
-        <p>PingerApp is a local network troubleshooting tool. It is designed for checking your own connection, devices, services, and ISP path.</p>
+        <h1>PingMedic Help</h1>
+        <p>PingMedic is a local network troubleshooting tool. It is designed for checking your own connection, devices, services, and ISP path.</p>
 
         <h2>Main Window</h2>
         <h3>Ping Panel</h3>
@@ -7005,7 +7068,7 @@ class PingerApp(QWidget):
         <h3>LAN Throughput</h3>
         <ul>
             <li>Uses iperf3 to measure local network throughput between two devices on your LAN.</li>
-            <li>PingerApp includes iperf3 at <code>tools/iperf3/iperf3.exe</code> and can also use iperf3 from PATH.</li>
+            <li>PingMedic includes iperf3 at <code>tools/iperf3/iperf3.exe</code> and can also use iperf3 from PATH.</li>
             <li>On one machine, open LAN Throughput and click <b>Start Server</b>. On the other machine, enter the server machine IP and click <b>Run LAN Test</b>.</li>
             <li>Do not use the gateway/router IP unless that device is actually running iperf3. Most home routers do not.</li>
             <li><b>Upload to server</b> sends traffic from this PC to the server. <b>Download from server</b> uses iperf3 reverse mode.</li>
@@ -7213,7 +7276,7 @@ class PingerApp(QWidget):
         if self.report_preview_box is not None:
             self.report_preview_box.setPlainText(report_text)
 
-        default_name = f"PingerApp_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        default_name = f"PingMedic_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         default_path = self._data_file_path(default_name)
         path, _ = QFileDialog.getSaveFileName(
             self.report_window or self,
@@ -7238,7 +7301,7 @@ class PingerApp(QWidget):
 
     def save_report_csv(self):
         rows = self.build_report_csv_rows()
-        default_name = f"PingerApp_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        default_name = f"PingMedic_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         default_path = self._data_file_path(default_name)
         path, _ = QFileDialog.getSaveFileName(
             self.report_window or self,
@@ -8678,13 +8741,26 @@ class PingerApp(QWidget):
             self._set_empty_axes()
 
         ymin, ymax = self.ax_lat.get_ylim(); span = ymax - ymin
-        if   span<=5:    major = 0.5
-        elif span<=10:   major = 1
-        elif span<=20:   major = 2
-        elif span<=50:   major = 5
-        elif span<=100:  major = 10
-        elif span<=200:  major = 20
-        else:            major = 50
+        if   span <= 5:     major = 0.5
+        elif span <= 10:    major = 1
+        elif span <= 20:    major = 2
+        elif span <= 50:    major = 5
+        elif span <= 100:   major = 10
+        elif span <= 250:   major = 25
+        elif span <= 500:   major = 50
+        elif span <= 1000:  major = 100
+        elif span <= 2500:  major = 250
+        elif span <= 5000:  major = 500
+        elif span <= 10000: major = 1000
+        else:
+            magnitude = 10 ** math.floor(math.log10(max(span, 1)))
+            normalized = span / magnitude
+            if normalized <= 2:
+                major = magnitude / 5
+            elif normalized <= 5:
+                major = magnitude / 2
+            else:
+                major = magnitude
 
         self.ax_lat.yaxis.set_major_locator(MultipleLocator(major))
         minor = major/5

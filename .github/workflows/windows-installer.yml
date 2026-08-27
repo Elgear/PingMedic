@@ -8,7 +8,7 @@ on:
       - "requirements.txt"
       - "requirements-dev.txt"
       - "installer/**"
-      - "build_installer.ps1"
+      - "scripts/**"
       - ".github/workflows/windows-installer.yml"
   workflow_dispatch:
     inputs:
@@ -47,7 +47,7 @@ jobs:
           } else {
             $version = "0.1.0-pr${{ github.event.pull_request.number }}"
           }
-          "PINGERAPP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "PINGMEDIC_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Install Python build dependencies
         shell: pwsh
@@ -56,11 +56,11 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
 
-      - name: Build PingerApp
+      - name: Build PingMedic
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean PingerApp.spec
-          if (-not (Test-Path "dist\PingerApp\PingerApp.exe")) { throw "PingerApp.exe was not created" }
+          if (-not (Test-Path "dist\PingMedic\PingMedic.exe")) { throw "PingMedic.exe was not created" }
 
       - name: Install Inno Setup
         shell: pwsh
@@ -70,14 +70,14 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force release | Out-Null
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$env:PINGERAPP_VERSION" "installer\PingerApp.iss"
-          if (-not (Get-ChildItem "release\PingerApp_Setup_*.exe" -ErrorAction SilentlyContinue)) { throw "Installer was not created" }
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$env:PINGMEDIC_VERSION" "installer\PingerApp.iss"
+          if (-not (Get-ChildItem "release\PingMedic_Setup_*.exe" -ErrorAction SilentlyContinue)) { throw "Installer was not created" }
 
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v7
         with:
-          name: PingerApp-Windows-Installer-${{ env.PINGERAPP_VERSION }}
-          path: release/PingerApp_Setup_*.exe
+          name: PingMedic-Windows-Installer-${{ env.PINGMEDIC_VERSION }}
+          path: release/PingMedic_Setup_*.exe
           if-no-files-found: error
 
       - name: Publish GitHub Release from version tag
@@ -87,12 +87,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "${{ github.ref_name }}"
-          $installer = (Get-ChildItem "release\PingerApp_Setup_*.exe" | Select-Object -First 1).FullName
+          $installer = (Get-ChildItem "release\PingMedic_Setup_*.exe" | Select-Object -First 1).FullName
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag $installer --clobber
           } else {
-            gh release create $tag $installer --generate-notes --title "PingerApp $tag"
+            gh release create $tag $installer --generate-notes --title "PingMedic $tag"
           }
 
       - name: Publish GitHub Release from manual run
@@ -101,11 +101,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "v$env:PINGERAPP_VERSION"
-          $installer = (Get-ChildItem "release\PingerApp_Setup_*.exe" | Select-Object -First 1).FullName
+          $tag = "v$env:PINGMEDIC_VERSION"
+          $installer = (Get-ChildItem "release\PingMedic_Setup_*.exe" | Select-Object -First 1).FullName
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag $installer --clobber
           } else {
-            gh release create $tag $installer --target "${{ github.sha }}" --generate-notes --title "PingerApp $tag"
+            gh release create $tag $installer --target "${{ github.sha }}" --generate-notes --title "PingMedic $tag"
           }

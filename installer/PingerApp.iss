@@ -1,21 +1,21 @@
-#define MyAppName "PingerApp"
-#define MyAppDisplayName "Home Pinger"
+#define MyAppName "PingMedic"
+#define MyAppDisplayName "PingMedic"
 #ifndef MyAppVersion
   #define MyAppVersion "0.1.0"
 #endif
-#define MyAppPublisher "PingerApp"
-#define MyAppExeName "PingerApp.exe"
+#define MyAppPublisher "PingMedic"
+#define MyAppExeName "PingMedic.exe"
 
 [Setup]
 AppId={{498F3784-C427-4FD7-9B6E-93718E2A7258}
 AppName={#MyAppDisplayName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\PingerApp
+DefaultDirName={autopf}\PingMedic
 DefaultGroupName={#MyAppDisplayName}
 DisableProgramGroupPage=yes
 OutputDir=..\release
-OutputBaseFilename=PingerApp_Setup_{#MyAppVersion}
+OutputBaseFilename=PingMedic_Setup_{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -32,7 +32,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
 
 [Files]
-Source: "..\dist\PingerApp\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\PingMedic\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
 

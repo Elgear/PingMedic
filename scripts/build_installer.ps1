@@ -12,7 +12,7 @@ if ($BuildApp) {
     & (Join-Path $repoRoot "scripts\build_windows.ps1") -Clean
 }
 
-$appExe = Join-Path $repoRoot "dist\PingerApp\PingerApp.exe"
+$appExe = Join-Path $repoRoot "dist\PingMedic\PingMedic.exe"
 if (-not (Test-Path -LiteralPath $appExe)) {
     throw "PyInstaller output was not found: $appExe. Run .\scripts\build_windows.ps1 -Clean first, or pass -BuildApp."
 }
@@ -44,7 +44,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "Inno Setup failed with exit code $LASTEXITCODE."
 }
 
-$installerPath = Join-Path $repoRoot "installer_output\PingerAppSetup-0.1.0.exe"
+$installerPath = Join-Path $repoRoot "installer_output\PingMedicSetup-0.1.0.exe"
 if (Test-Path -LiteralPath $installerPath) {
     Write-Host "Built $installerPath"
 } else {
