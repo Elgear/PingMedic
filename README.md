@@ -1,28 +1,85 @@
 # PingMedic
 
-PyQt5 desktop tool for monitoring latency, packet loss, jitter, DNS lookups, and traceroute output.
+**Windows Network Diagnostics & Troubleshooting**
 
-The Ping Panel supports saved Host presets so common gateways, public targets, and service IPs can be reused without retyping.
+PingMedic is an open-source Windows desktop application for diagnosing connection quality, latency, packet loss, jitter, DNS, routing, Wi-Fi, internet speed and local network problems from one interface.
 
-## Download
+[**Download PingMedic for Windows**](https://github.com/Elgear/PingMedic/releases)
 
-Windows builds are published from GitHub Releases:
+> **Windows note:** current public releases may still be unsigned and Windows SmartScreen can show an unknown-publisher warning. PingMedic has applied to the SignPath Foundation open-source code-signing program. Once approved and integrated, official Windows releases will be signed through SignPath Foundation.
 
-```text
-https://github.com/Elgear/PingMedic/releases
-```
+## What PingMedic does
 
-For version `0.1.0`, download `PingMedic_Setup_0.1.0.exe` and verify the checksum:
+PingMedic combines continuous connection monitoring with practical diagnostic tools so you can investigate where a network problem is happening instead of running separate utilities manually.
 
-```text
-SHA256 F27DD934522CE6BCD09F4198D50D78094D54023C5320B10AF443292E8B9BB340
-```
+- **Ping monitoring** — live latency, packet loss, thresholds, alerts and rolling statistics.
+- **Latency & jitter graphs** — adaptive graph scaling, best/worst/combined latency averages and jitter analysis.
+- **Host information** — hostname, local IP, gateway, public IP, ISP and primary MAC address.
+- **Internet speed testing** — bundled LibreSpeed testing with persistent history.
+- **LAN throughput** — bundled iperf3 client/server testing for local network performance.
+- **Gateway Stability** — repeated first-hop testing for latency, loss, jitter and spikes.
+- **Loaded Latency** — compare idle latency against latency while the connection is under load.
+- **Route Health** — compare gateway, ISP first hop and public-target health while traffic is running.
+- **Wi-Fi Diagnostics** — SSID, BSSID, signal, band, channel, protocol, rates, authentication and connection diagnosis on Windows.
+- **Adapter Info** — link speed, IP, gateway, DNS, MAC, counters and negotiation diagnostics.
+- **DNS tools** — DNS / WHOIS lookup and resolver comparison across System DNS, Cloudflare, Google and Quad9.
+- **Traceroute & MTU testing** — route visibility and path-MTU troubleshooting.
+- **HTTP test** — HTTP/HTTPS requests, redirects, timing, headers and TLS certificate summary.
+- **Network Scanner** — safe TCP connect scanning for hosts and IPv4 subnets you are authorized to troubleshoot.
+- **Reports** — export troubleshooting results to text or CSV.
+- **Offline Help** — built-in guidance for controls, graphs, tools and common diagnostic meanings.
 
-The installer is currently unsigned, so Windows SmartScreen may show a warning.
+## Download and install
 
-PingMedic is applying to use the SignPath Foundation free code-signing program for open-source projects. Once approved and integrated, official Windows releases will be signed through SignPath Foundation.
+Official Windows builds are published on the GitHub Releases page:
 
-## Setup
+**https://github.com/Elgear/PingMedic/releases**
+
+Download the latest `PingMedic_Setup_<version>.exe`, run the installer, and launch **PingMedic** from the Start Menu or optional desktop shortcut.
+
+PingMedic stores presets, history and generated reports in a writable per-user data location rather than under the Program Files installation directory.
+
+## Typical troubleshooting flow
+
+1. Start a continuous ping to your gateway, a public IP or a service you are troubleshooting.
+2. Check latency, packet loss and jitter for instability.
+3. Use **Gateway Stability** to establish whether the problem begins inside the local network.
+4. Use **Loaded Latency** to check for latency increases under load.
+5. Use **Route Health** or **Traceroute** to see whether degradation begins beyond the gateway.
+6. Use **Speed Test**, **Wi-Fi Diagnostics**, **Adapter Info** or **LAN Throughput** to isolate internet, wireless, Ethernet or local-network bottlenecks.
+7. Export a report if you need to retain or share the results.
+
+## Screenshots
+
+Screenshots of the current PingMedic interface will be added here as the UI is finalized for the first fully branded public release.
+
+## Security and privacy
+
+PingMedic runs locally and does not require an account, API key or subscription. It does not include application telemetry or analytics.
+
+Some diagnostics intentionally contact user-selected targets or external services when you run them, including public DNS resolvers, public IP metadata services and LibreSpeed servers. Presets, test history and reports remain local unless you choose to share them.
+
+Only run **Network Scanner** against networks and hosts that you own or are authorized to troubleshoot.
+
+- [Privacy policy](PRIVACY.md)
+- [Security policy](SECURITY.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
+
+## Open source
+
+PingMedic is licensed under **GPL-3.0-only**. Third-party components remain under their respective licences and are documented in `THIRD_PARTY_NOTICES.md`.
+
+The repository is public so the source, build process and release history can be independently reviewed. The `main` branch is protected by GitHub rules, changes go through pull requests, and the Windows installer build must pass before merge.
+
+## Build from source
+
+Requirements:
+
+- Windows
+- Python
+- dependencies from `requirements.txt`
+
+Basic development setup:
 
 ```powershell
 python -m venv .venv
@@ -31,92 +88,58 @@ pip install -r requirements.txt
 python .\PingerApp\PingerApp.py
 ```
 
-Raw ICMP ping can require elevated network privileges on some systems. If the app cannot create a raw socket, it will now show an error when pinging starts instead of failing before the window opens.
+Raw ICMP ping can require elevated network privileges on some systems. If PingMedic cannot create the required raw socket, it reports the error when pinging starts rather than failing before the window opens.
 
-Host Info includes local hostname, local IP, first-hop gateway, public IP, public ISP, and primary MAC address. ISP metadata is looked up with a timeout-bound public IP metadata request and falls back to `N/A` if unavailable.
+## Packaging
 
-The right-side Tools panel opens separate diagnostic windows:
-
-- Speed Test: LibreSpeed-based internet speed test with persistent history.
-- Adapter Info: active adapter link speed, status, type, IP, gateway, DNS, MAC, duplex setting where available, interface error/discard counters where Windows exposes them, timed Counter Watch transfer/error delta testing, and diagnosis for 100 Mbps vs gigabit negotiation or suspicious counters.
-- LAN Throughput: bundled iperf3 client/server tool for testing local network throughput separately from internet speed.
-- Gateway Stability: repeated first-hop ping monitor for gateway latency, packet loss, jitter, and spikes.
-- Loaded Latency: bufferbloat check that compares idle ping latency with latency while LibreSpeed load is running.
-- Route Health: LibreSpeed load plus simultaneous gateway, ISP first-hop, and public-target ping health checks to locate where slowdown starts.
-- Wi-Fi Diagnostics: Windows Wi-Fi SSID, BSSID, signal, band, channel, protocol, link rates, authentication, cipher, and diagnosis for wireless speed limits.
-- Speed Targets: select and compare LibreSpeed servers with short tests to detect poor speed test server/CDN target selection.
-- Network Scanner: safe TCP connect scanning for one host or an IPv4 subnet, with grouped Target/Scan/Display controls, section header help beside each section label, common CIDR size selection, named port presets plus a manual port entry field with exact-port preview, stop control, grouped-by-host wrapped results, separate Host State, Open Ports, and Port State columns, result filtering, highlighted open/live rows, host discovery, full-port/specific-port presets, open/closed/filtered state reporting, service names, optional light service probes, progress, latency, and hostname/MAC lookup through reverse DNS, ARP, and Windows NetBIOS where available.
-- HTTP Test: HTTP/HTTPS request diagnostics with GET/HEAD, redirect control, optional self-signed certificate allowance for local HTTPS tests, timing, final URL, TLS certificate summary, headers, and error details.
-- DNS / WHOIS: forward/reverse lookup, selectable DNS record lookup through `nslookup`, and optional IP/ASN/ISP ownership metadata.
-- DNS Compare: compare DNS answers and response times across System DNS, Cloudflare, Google, and Quad9 using `nslookup`.
-- MTU Test: find the largest non-fragmenting ping payload and estimated path MTU, with raw ping output details.
-- Traceroute: target, max-hop, and timeout controls with structured hop output plus raw traceroute text.
-- Alerts: threshold alert log.
-- Report: selectable troubleshooting report with preview, `.txt` export, and spreadsheet-friendly `.csv` export for Host Info, Adapter Info, ping stats, LAN Throughput, Gateway Stability, Loaded Latency, Route Health, Wi-Fi Diagnostics, Speed Targets, Speed Test history, last DNS lookup, last traceroute, and Network Scanner results.
-- Help: offline field guide explaining the main panels, controls, graph readings, tool workflows, report output, and common diagnostic meanings.
-
-MAC addresses can only be discovered when the target exposes them on the local network path. Routed hosts usually show no MAC address, or only the next-hop device in the local ARP cache.
-
-## Security And Privacy
-
-PingMedic is a local troubleshooting tool and does not require accounts, API keys, or secrets. Some diagnostics intentionally contact selected targets, public DNS resolvers, public IP metadata services, or public LibreSpeed servers when those tools are run.
-
-Only run Network Scanner against networks and hosts you own or are authorized to troubleshoot. Security reporting guidance is in `SECURITY.md`. Privacy details are in `PRIVACY.md`.
-
-## License
-
-PingMedic source code is licensed under GPL-3.0-only. This matches the GPL distribution path for PyQt5. Third-party components remain under their own licenses; see `THIRD_PARTY_NOTICES.md`.
-
-## LibreSpeed Speed Test
-
-The Speed Test window uses the bundled open-source LibreSpeed CLI at:
-
-```text
-tools/librespeed/librespeed-cli.exe
-```
-
-The app also falls back to `librespeed-cli` on `PATH` if the bundled executable is not present. The Speed Test window auto-loads the public server list, supports automatic server selection, manual server refresh/selection, configurable test duration, progress display, persistent history for the last 10 runs, data-used reporting, and optional share URL generation when the selected LibreSpeed server supports it.
-
-The bundled binary is LibreSpeed CLI v1.0.13 for Windows x64. Its source release, checksum, and license are recorded in `tools/librespeed/VERSION.txt` and `tools/librespeed/LICENSE.librespeed-cli.txt`. LibreSpeed CLI is licensed under LGPL-3.0, so keep it replaceable as a separate executable in packaged builds.
-
-## LAN Throughput
-
-The LAN Throughput window uses the bundled iperf3 executable at:
-
-```text
-tools/iperf3/iperf3.exe
-```
-
-The app also falls back to `iperf3` on `PATH` if the bundled executable is not present. Run the iperf3 server on one local machine and the client test from another machine to separate LAN, cable, switch, Wi-Fi, or adapter bottlenecks from ISP/WAN speed problems. Do not use the gateway/router IP unless that device is actually running iperf3; most home routers do not.
-
-The bundled Windows build is iperf3 3.21 and includes `cygwin1.dll`. Source, license, and checksum records are in `tools/iperf3/VERSION.txt`, `tools/iperf3/CHECKSUMS.txt`, and the `tools/iperf3/LICENSE.*.txt` files.
-
-## Packaging Notes
-
-For a local Windows build, use the PyInstaller wrapper script:
+For a local Windows application build:
 
 ```powershell
 .\scripts\setup_packaging_env.ps1
 .\scripts\build_windows.ps1 -Clean
 ```
 
-The build output is written to `dist\PingMedic\PingMedic.exe`. Full packaging notes are in `PACKAGING.md`. Packaging should use the dedicated `.packaging-venv` created from stable Python 3.13; do not build the release installer from the older prerelease virtual environments.
+PyInstaller writes the packaged application to:
 
-For a PC install, build the PyInstaller output and then run the Inno Setup wrapper:
+```text
+dist\PingMedic\PingMedic.exe
+```
+
+To build the Windows installer:
 
 ```powershell
 .\scripts\build_windows.ps1 -Clean
 .\scripts\build_installer.ps1
 ```
 
-The installer script is `installer\PingerApp.iss`, and the generated setup executable is written to `installer_output\PingMedic_Setup_0.1.0.exe`. The installer includes:
+The current internal packaging files retain their historical names (`PingerApp.spec`, `installer\PingerApp.iss` and `PingerApp\PingerApp.py`) while the public product, executable and installer are branded **PingMedic**. These internal paths can be cleaned up separately without affecting the product name.
 
-- the PingMedic executable and Python runtime bundle,
-- required Python libraries,
-- bundled `tools/librespeed/librespeed-cli.exe`,
-- LibreSpeed CLI license attribution,
-- bundled `tools/iperf3/iperf3.exe` and `tools/iperf3/cygwin1.dll`,
-- iperf3, Windows build, and Cygwin license attribution,
-- a Start Menu shortcut,
-- an optional desktop shortcut,
-- a note that ICMP ping may require elevated permissions depending on the machine.
+Full packaging notes are in [PACKAGING.md](PACKAGING.md).
+
+## Bundled diagnostic components
+
+### LibreSpeed
+
+PingMedic bundles LibreSpeed CLI at:
+
+```text
+tools/librespeed/librespeed-cli.exe
+```
+
+The application can also use `librespeed-cli` from `PATH` when the bundled executable is unavailable. Version, checksum and licence information are kept under `tools/librespeed/`.
+
+### iperf3
+
+PingMedic bundles iperf3 at:
+
+```text
+tools/iperf3/iperf3.exe
+```
+
+The application can also use `iperf3` from `PATH`. Run an iperf3 server on another machine on your LAN and use PingMedic as the client to distinguish local Ethernet/Wi-Fi performance problems from ISP/WAN problems. Version, checksum and licence information are kept under `tools/iperf3/`.
+
+## Code signing
+
+PingMedic has submitted an application to the **SignPath Foundation** free code-signing program for open-source projects.
+
+Current releases should be treated as unsigned until the integration is approved and the release workflow has been updated. After approval, this section and the release documentation will be updated to identify signed official releases.
