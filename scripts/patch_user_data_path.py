@@ -22,3 +22,5 @@ if old not in text:
     raise SystemExit('Expected _data_file_path implementation not found')
 text = text.replace(old, new, 1)
 path.write_text(text, encoding='utf-8')
+
+# trigger
