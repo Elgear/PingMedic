@@ -559,39 +559,37 @@ def gateway_stability_diagnosis(stats):
     return "Gateway did not return successful latency samples. It may block ping, be unreachable, or be dropping local traffic."
 
 def route_health_diagnosis(result):
-    paths = result.get("paths", {})
+    paths = (result or {}).get("paths", {}) or {}
+    gateway = paths.get("gateway", {}) or {}
+    isp = paths.get("isp", {}) or {}
+    public = paths.get("public", {}) or {}
 
-    def troubled(name):
-        stats = paths.get(name, {})
-        return stats.get("loss_pct", 0) > 0 or stats.get("spike_count", 0) > 0
+    def unhealthy(item):
+        return float(item.get("loss_pct") or 0) > 0 or int(item.get("spike_count") or 0) > 0
 
-    gateway_bad = troubled("gateway")
-    isp_bad = troubled("isp")
-    public_bad = troubled("public")
-    gateway = paths.get("gateway", {})
-    isp = paths.get("isp", {})
-    public = paths.get("public", {})
+    gateway_bad = unhealthy(gateway)
+    isp_bad = unhealthy(isp)
+    public_bad = unhealthy(public)
 
     if gateway_bad:
         return (
-            "Gateway path degraded during load. Because the first hop shows loss or spikes, start with local causes: "
-            "Wi-Fi, Ethernet cable, switch/router LAN port, adapter, driver, or router CPU/queue pressure."
+            "A latency spike or packet loss was detected at the local gateway during load. "
+            "Because the issue is already visible before the ISP hop, investigate the local network first: "
+            "Wi-Fi or Ethernet quality, adapter/driver, cable, switch/router LAN port, or router load."
         )
     if isp_bad:
         return (
-            "Gateway stayed cleaner than the ISP first hop, but the ISP hop degraded. That points beyond the local LAN: "
-            "router WAN side, modem/ONT, ISP edge, or provider congestion."
+            "The local gateway stayed stable, but degradation appeared at the ISP first hop during load. "
+            "This points beyond the local LAN toward the router WAN link, ISP access network, or upstream congestion."
         )
     if public_bad:
         return (
-            "Gateway and ISP first hop looked cleaner than the public target. That points farther upstream: route, peering, "
-            "remote network, or the selected public target."
+            "The gateway and ISP first hop stayed stable, but the public target degraded during load. "
+            "This points further upstream toward internet routing, peering, congestion, or the selected public target."
         )
-    if gateway.get("sent", 0) == 0 and isp.get("sent", 0) == 0 and public.get("sent", 0) == 0:
-        return "No route health samples were collected."
     return (
-        "Route health looked stable during the load window. If throughput was still poor, focus on link negotiation, "
-        "router/WAN throughput, ISP profile, speed test server choice, or endpoint limits."
+        "Route health looked stable during the load window. No packet loss or configured-threshold spikes were detected "
+        "at the gateway, ISP first hop, or public target."
     )
 
 def wifi_protocol_name(radio_type):
@@ -5534,7 +5532,7 @@ class PingerApp(QWidget):
             diagnosis_group.setLayout(diagnosis_layout)
             layout.addWidget(diagnosis_group)
 
-            raw_group = QGroupBox("Ping Log / Speed Test JSON")
+            raw_group = QGroupBox("Technical Details / Raw Output")
             raw_layout = QVBoxLayout()
             self.route_raw_box = QTextEdit()
             self.route_raw_box.setReadOnly(True)
@@ -5628,6 +5626,15 @@ class PingerApp(QWidget):
         self.route_raw_box.append(
             f"{sample.get('label')} {sample.get('target')} sample {sample.get('index')}: {sample.get('status')}"
         )
+
+    def _route_path_assessment(self, stats: dict):
+        loss = float((stats or {}).get("loss_pct") or 0)
+        spikes = int((stats or {}).get("spike_count") or 0)
+        if loss >= 5 or spikes >= 3:
+            return "Poor"
+        if loss > 0 or spikes > 0:
+            return "Watch"
+        return "Healthy"
 
     def _set_route_health_result(self, result: dict):
         self.route_last_result = result
@@ -6252,7 +6259,7 @@ class PingerApp(QWidget):
             diagnosis_group.setLayout(diagnosis_layout)
             layout.addWidget(diagnosis_group)
 
-            raw_group = QGroupBox("Ping Log / Speed Test JSON")
+            raw_group = QGroupBox("Technical Details / Raw Output")
             raw_layout = QVBoxLayout()
             self.loaded_raw_box = QTextEdit()
             self.loaded_raw_box.setReadOnly(True)
