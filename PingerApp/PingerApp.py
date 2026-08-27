@@ -559,39 +559,37 @@ def gateway_stability_diagnosis(stats):
     return "Gateway did not return successful latency samples. It may block ping, be unreachable, or be dropping local traffic."
 
 def route_health_diagnosis(result):
-    paths = result.get("paths", {})
+    paths = (result or {}).get("paths", {}) or {}
+    gateway = paths.get("gateway", {}) or {}
+    isp = paths.get("isp", {}) or {}
+    public = paths.get("public", {}) or {}
 
-    def troubled(name):
-        stats = paths.get(name, {})
-        return stats.get("loss_pct", 0) > 0 or stats.get("spike_count", 0) > 0
+    def unhealthy(item):
+        return float(item.get("loss_pct") or 0) > 0 or int(item.get("spike_count") or 0) > 0
 
-    gateway_bad = troubled("gateway")
-    isp_bad = troubled("isp")
-    public_bad = troubled("public")
-    gateway = paths.get("gateway", {})
-    isp = paths.get("isp", {})
-    public = paths.get("public", {})
+    gateway_bad = unhealthy(gateway)
+    isp_bad = unhealthy(isp)
+    public_bad = unhealthy(public)
 
     if gateway_bad:
         return (
-            "Gateway path degraded during load. Because the first hop shows loss or spikes, start with local causes: "
-            "Wi-Fi, Ethernet cable, switch/router LAN port, adapter, driver, or router CPU/queue pressure."
+            "A latency spike or packet loss was detected at the local gateway during load. "
+            "Because the issue is already visible before the ISP hop, investigate the local network first: "
+            "Wi-Fi or Ethernet quality, adapter/driver, cable, switch/router LAN port, or router load."
         )
     if isp_bad:
         return (
-            "Gateway stayed cleaner than the ISP first hop, but the ISP hop degraded. That points beyond the local LAN: "
-            "router WAN side, modem/ONT, ISP edge, or provider congestion."
+            "The local gateway stayed stable, but degradation appeared at the ISP first hop during load. "
+            "This points beyond the local LAN toward the router WAN link, ISP access network, or upstream congestion."
         )
     if public_bad:
         return (
-            "Gateway and ISP first hop looked cleaner than the public target. That points farther upstream: route, peering, "
-            "remote network, or the selected public target."
+            "The gateway and ISP first hop stayed stable, but the public target degraded during load. "
+            "This points further upstream toward internet routing, peering, congestion, or the selected public target."
         )
-    if gateway.get("sent", 0) == 0 and isp.get("sent", 0) == 0 and public.get("sent", 0) == 0:
-        return "No route health samples were collected."
     return (
-        "Route health looked stable during the load window. If throughput was still poor, focus on link negotiation, "
-        "router/WAN throughput, ISP profile, speed test server choice, or endpoint limits."
+        "Route health looked stable during the load window. No packet loss or configured-threshold spikes were detected "
+        "at the gateway, ISP first hop, or public target."
     )
 
 def wifi_protocol_name(radio_type):
@@ -921,16 +919,22 @@ $items | ConvertTo-Json -Depth 4 -Compress
         kwargs = {
             "capture_output": True,
             "text": True,
-            "timeout": 10,
+            "timeout": 20,
             "encoding": "utf-8",
             "errors": "replace",
         }
         if hasattr(subprocess, "CREATE_NO_WINDOW"):
             kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
-        completed = subprocess.run(
-            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
-            **kwargs,
-        )
+        try:
+            completed = subprocess.run(
+                ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "-"],
+                input=script,
+                **kwargs,
+            )
+        except subprocess.TimeoutExpired:
+            raise RuntimeError("Windows PowerShell adapter query timed out. Try Refresh Adapter Info again.")
+        except FileNotFoundError:
+            raise RuntimeError("Windows PowerShell was not found on this system.")
         if completed.returncode != 0:
             message = (completed.stderr or completed.stdout or "").strip()
             raise RuntimeError(message or "PowerShell returned no adapter data.")
@@ -3420,9 +3424,11 @@ class PingerApp(QWidget):
             "padding: 3px 6px; background-color: #fafafa; }"
         )
 
+        SUMMARY_CELL_HEIGHT = 28
+
         def style_summary_cell(widget):
             widget.setStyleSheet(summary_cell_style)
-            widget.setMinimumHeight(24)
+            widget.setFixedHeight(SUMMARY_CELL_HEIGHT)
             return widget
 
         def summary_caption(text):
@@ -3434,8 +3440,10 @@ class PingerApp(QWidget):
         alert_group.setMinimumSize(0,120)
         ag = QGridLayout(); ag.setContentsMargins(8,8,8,8)
         ag.setHorizontalSpacing(8); ag.setVerticalSpacing(6)
+        ag.setAlignment(Qt.AlignTop)
         ag.setColumnStretch(0, 1)
         ag.setColumnStretch(1, 1)
+        self.reset_btn.setFixedHeight(SUMMARY_CELL_HEIGHT)
         style_summary_cell(self.lat_count_label)
         style_summary_cell(self.loss_count_label)
         style_summary_cell(self.loss_value_label)
@@ -3458,6 +3466,9 @@ class PingerApp(QWidget):
         sg.setColumnStretch(1, 1)
         sg.setColumnStretch(2, 0)
         sg.setColumnMinimumWidth(2, 92)
+        sg.setAlignment(Qt.AlignTop)
+        for button in (self.best_avg_btn, self.worst_avg_btn, self.combined_avg_btn):
+            button.setFixedHeight(SUMMARY_CELL_HEIGHT)
         style_summary_cell(self.avg_low_label)
         sg.addWidget(summary_caption("Avg best 10:"),  0,0)
         sg.addWidget(self.avg_low_label,                    0,1)
@@ -3477,7 +3488,14 @@ class PingerApp(QWidget):
         jit_group.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         jit_group.setMinimumSize(0,120)
         jl = QGridLayout(); jl.setContentsMargins(8,8,8,8)
-        jl.setHorizontalSpacing(12); jl.setVerticalSpacing(6)
+        jl.setHorizontalSpacing(8); jl.setVerticalSpacing(6)
+        jl.setAlignment(Qt.AlignTop)
+        jl.setColumnStretch(0, 2)
+        jl.setColumnStretch(1, 1)
+        jl.setColumnStretch(2, 0)
+        jl.setColumnMinimumWidth(2, 92)
+        for button in (self.jit_min_btn, self.jit_max_btn, self.jit_avg_btn):
+            button.setFixedHeight(SUMMARY_CELL_HEIGHT)
         style_summary_cell(self.jit_low_label)
         jl.addWidget(summary_caption("Min jitter:"), 0,0)
         jl.addWidget(self.jit_low_label,                 0,1)
@@ -4733,6 +4751,12 @@ class PingerApp(QWidget):
             )
 
     def _set_adapter_info_error(self, message: str):
+        safe_message = re.sub(r"\s+", " ", str(message or "")).strip()
+        if not safe_message:
+            safe_message = "Windows could not return adapter details."
+        if "Command '['powershell'" in safe_message or len(safe_message) > 240:
+            safe_message = "Windows PowerShell could not return adapter details."
+
         fallback = {
             "adapter": "N/A",
             "description": "PowerShell adapter details unavailable",
@@ -4753,7 +4777,7 @@ class PingerApp(QWidget):
             "rx_discards": "N/A",
             "tx_discards": "N/A",
             "diagnosis": (
-                f"{message}\n\n"
+                f"{safe_message}\n\n"
                 "The app could not read Windows adapter link-speed data. "
                 "You can still compare local IP/gateway here, then check Windows Settings > Network & internet > "
                 "Advanced network settings for Link speed."
@@ -5508,7 +5532,7 @@ class PingerApp(QWidget):
             diagnosis_group.setLayout(diagnosis_layout)
             layout.addWidget(diagnosis_group)
 
-            raw_group = QGroupBox("Ping Log / Speed Test JSON")
+            raw_group = QGroupBox("Technical Details / Raw Output")
             raw_layout = QVBoxLayout()
             self.route_raw_box = QTextEdit()
             self.route_raw_box.setReadOnly(True)
@@ -5602,6 +5626,15 @@ class PingerApp(QWidget):
         self.route_raw_box.append(
             f"{sample.get('label')} {sample.get('target')} sample {sample.get('index')}: {sample.get('status')}"
         )
+
+    def _route_path_assessment(self, stats: dict):
+        loss = float((stats or {}).get("loss_pct") or 0)
+        spikes = int((stats or {}).get("spike_count") or 0)
+        if loss >= 5 or spikes >= 3:
+            return "Poor"
+        if loss > 0 or spikes > 0:
+            return "Watch"
+        return "Healthy"
 
     def _set_route_health_result(self, result: dict):
         self.route_last_result = result
@@ -6226,7 +6259,7 @@ class PingerApp(QWidget):
             diagnosis_group.setLayout(diagnosis_layout)
             layout.addWidget(diagnosis_group)
 
-            raw_group = QGroupBox("Ping Log / Speed Test JSON")
+            raw_group = QGroupBox("Technical Details / Raw Output")
             raw_layout = QVBoxLayout()
             self.loaded_raw_box = QTextEdit()
             self.loaded_raw_box.setReadOnly(True)
