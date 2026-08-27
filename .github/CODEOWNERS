@@ -1,0 +1,20 @@
+# Default ownership for the PingMedic repository
+* @Elgear
+
+# Core application source
+/PingerApp/ @Elgear
+/PingerApp.spec @Elgear
+
+# Packaging and installer configuration
+/installer/ @Elgear
+/scripts/ @Elgear
+
+# CI/CD and repository automation
+/.github/workflows/ @Elgear
+
+# Security, privacy, licensing and release documentation
+/SECURITY.md @Elgear
+/PRIVACY.md @Elgear
+/THIRD_PARTY_NOTICES.md @Elgear
+/LICENSE* @Elgear
+/README.md @Elgear
