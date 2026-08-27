@@ -9,7 +9,7 @@ The Ping Panel supports saved Host presets so common gateways, public targets, a
 Windows builds are published from GitHub Releases:
 
 ```text
-https://github.com/Elgear/PingerAPP/releases
+https://github.com/Elgear/PingMedic/releases
 ```
 
 For version `0.1.0`, download `PingMedic_Setup_0.1.0.exe` and verify the checksum:
@@ -19,6 +19,8 @@ SHA256 F27DD934522CE6BCD09F4198D50D78094D54023C5320B10AF443292E8B9BB340
 ```
 
 The installer is currently unsigned, so Windows SmartScreen may show a warning.
+
+PingMedic is applying to use the SignPath Foundation free code-signing program for open-source projects. Once approved and integrated, official Windows releases will be signed through SignPath Foundation.
 
 ## Setup
 
@@ -59,7 +61,7 @@ MAC addresses can only be discovered when the target exposes them on the local n
 
 PingMedic is a local troubleshooting tool and does not require accounts, API keys, or secrets. Some diagnostics intentionally contact selected targets, public DNS resolvers, public IP metadata services, or public LibreSpeed servers when those tools are run.
 
-Only run Network Scanner against networks and hosts you own or are authorized to troubleshoot. Security reporting guidance is in `SECURITY.md`.
+Only run Network Scanner against networks and hosts you own or are authorized to troubleshoot. Security reporting guidance is in `SECURITY.md`. Privacy details are in `PRIVACY.md`.
 
 ## License
 
@@ -109,7 +111,7 @@ For a PC install, build the PyInstaller output and then run the Inno Setup wrapp
 
 The installer script is `installer\PingerApp.iss`, and the generated setup executable is written to `installer_output\PingMedic_Setup_0.1.0.exe`. The installer includes:
 
-- the PingerApp executable and Python runtime bundle,
+- the PingMedic executable and Python runtime bundle,
 - required Python libraries,
 - bundled `tools/librespeed/librespeed-cli.exe`,
 - LibreSpeed CLI license attribution,
