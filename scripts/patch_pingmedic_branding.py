@@ -43,7 +43,6 @@ replacements = {
         ('PingerApp is a local troubleshooting tool', 'PingMedic is a local troubleshooting tool'),
         ('PingerApp source code', 'PingMedic source code'),
         ('dist\\PingerApp\\PingerApp.exe', 'dist\\PingMedic\\PingMedic.exe'),
-        ('installer_output\\PingerAppSetup-0.1.0.exe', 'installer_output\\PingMedicSetup-0.1.0.exe'),
     ],
 }
 
@@ -55,4 +54,4 @@ for path, pairs in replacements.items():
         text = text.replace(old, new)
     path.write_text(text, encoding='utf-8')
 
-# trigger 2
+# trigger 3
