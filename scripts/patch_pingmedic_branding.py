@@ -56,3 +56,5 @@ for path, pairs in replacements.items():
             raise SystemExit(f'Expected text not found in {path}: {old}')
         text = text.replace(old, new)
     path.write_text(text, encoding='utf-8')
+
+# trigger
