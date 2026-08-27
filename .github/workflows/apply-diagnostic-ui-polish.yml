@@ -1,0 +1,40 @@
+name: Apply diagnostic UI polish
+
+on:
+  push:
+    branches:
+      - fix/diagnostic-ui-polish
+    paths:
+      - scripts/apply_diagnostic_ui_polish.py
+      - .github/workflows/apply-diagnostic-ui-polish.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v7
+        with:
+          ref: fix/diagnostic-ui-polish
+
+      - name: Apply patch
+        run: python scripts/apply_diagnostic_ui_polish.py
+
+      - name: Validate Python syntax
+        run: python -m py_compile PingerApp/PingerApp.py
+
+      - name: Remove temporary helper files
+        run: |
+          git rm scripts/apply_diagnostic_ui_polish.py
+          git rm .github/workflows/apply-diagnostic-ui-polish.yml
+
+      - name: Commit patched source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add PingerApp/PingerApp.py
+          git commit -m "Polish summary row and adapter diagnostics"
+          git push origin HEAD:fix/diagnostic-ui-polish
