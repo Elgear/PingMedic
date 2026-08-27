@@ -921,16 +921,22 @@ $items | ConvertTo-Json -Depth 4 -Compress
         kwargs = {
             "capture_output": True,
             "text": True,
-            "timeout": 10,
+            "timeout": 20,
             "encoding": "utf-8",
             "errors": "replace",
         }
         if hasattr(subprocess, "CREATE_NO_WINDOW"):
             kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
-        completed = subprocess.run(
-            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
-            **kwargs,
-        )
+        try:
+            completed = subprocess.run(
+                ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "-"],
+                input=script,
+                **kwargs,
+            )
+        except subprocess.TimeoutExpired:
+            raise RuntimeError("Windows PowerShell adapter query timed out. Try Refresh Adapter Info again.")
+        except FileNotFoundError:
+            raise RuntimeError("Windows PowerShell was not found on this system.")
         if completed.returncode != 0:
             message = (completed.stderr or completed.stdout or "").strip()
             raise RuntimeError(message or "PowerShell returned no adapter data.")
@@ -3420,9 +3426,11 @@ class PingerApp(QWidget):
             "padding: 3px 6px; background-color: #fafafa; }"
         )
 
+        SUMMARY_CELL_HEIGHT = 28
+
         def style_summary_cell(widget):
             widget.setStyleSheet(summary_cell_style)
-            widget.setMinimumHeight(24)
+            widget.setFixedHeight(SUMMARY_CELL_HEIGHT)
             return widget
 
         def summary_caption(text):
@@ -3434,8 +3442,10 @@ class PingerApp(QWidget):
         alert_group.setMinimumSize(0,120)
         ag = QGridLayout(); ag.setContentsMargins(8,8,8,8)
         ag.setHorizontalSpacing(8); ag.setVerticalSpacing(6)
+        ag.setAlignment(Qt.AlignTop)
         ag.setColumnStretch(0, 1)
         ag.setColumnStretch(1, 1)
+        self.reset_btn.setFixedHeight(SUMMARY_CELL_HEIGHT)
         style_summary_cell(self.lat_count_label)
         style_summary_cell(self.loss_count_label)
         style_summary_cell(self.loss_value_label)
@@ -3458,6 +3468,9 @@ class PingerApp(QWidget):
         sg.setColumnStretch(1, 1)
         sg.setColumnStretch(2, 0)
         sg.setColumnMinimumWidth(2, 92)
+        sg.setAlignment(Qt.AlignTop)
+        for button in (self.best_avg_btn, self.worst_avg_btn, self.combined_avg_btn):
+            button.setFixedHeight(SUMMARY_CELL_HEIGHT)
         style_summary_cell(self.avg_low_label)
         sg.addWidget(summary_caption("Avg best 10:"),  0,0)
         sg.addWidget(self.avg_low_label,                    0,1)
@@ -3477,7 +3490,14 @@ class PingerApp(QWidget):
         jit_group.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         jit_group.setMinimumSize(0,120)
         jl = QGridLayout(); jl.setContentsMargins(8,8,8,8)
-        jl.setHorizontalSpacing(12); jl.setVerticalSpacing(6)
+        jl.setHorizontalSpacing(8); jl.setVerticalSpacing(6)
+        jl.setAlignment(Qt.AlignTop)
+        jl.setColumnStretch(0, 2)
+        jl.setColumnStretch(1, 1)
+        jl.setColumnStretch(2, 0)
+        jl.setColumnMinimumWidth(2, 92)
+        for button in (self.jit_min_btn, self.jit_max_btn, self.jit_avg_btn):
+            button.setFixedHeight(SUMMARY_CELL_HEIGHT)
         style_summary_cell(self.jit_low_label)
         jl.addWidget(summary_caption("Min jitter:"), 0,0)
         jl.addWidget(self.jit_low_label,                 0,1)
@@ -4733,6 +4753,12 @@ class PingerApp(QWidget):
             )
 
     def _set_adapter_info_error(self, message: str):
+        safe_message = re.sub(r"\s+", " ", str(message or "")).strip()
+        if not safe_message:
+            safe_message = "Windows could not return adapter details."
+        if "Command '['powershell'" in safe_message or len(safe_message) > 240:
+            safe_message = "Windows PowerShell could not return adapter details."
+
         fallback = {
             "adapter": "N/A",
             "description": "PowerShell adapter details unavailable",
@@ -4753,7 +4779,7 @@ class PingerApp(QWidget):
             "rx_discards": "N/A",
             "tx_discards": "N/A",
             "diagnosis": (
-                f"{message}\n\n"
+                f"{safe_message}\n\n"
                 "The app could not read Windows adapter link-speed data. "
                 "You can still compare local IP/gateway here, then check Windows Settings > Network & internet > "
                 "Advanced network settings for Link speed."
