@@ -1,0 +1,29 @@
+name: Apply PingMedic branding
+
+on:
+  push:
+    branches:
+      - ui/responsive-main-layout
+    paths:
+      - "scripts/patch_pingmedic_branding.py"
+
+permissions:
+  contents: write
+
+jobs:
+  apply-branding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ui/responsive-main-layout
+      - run: python scripts/patch_pingmedic_branding.py
+      - run: python -m py_compile PingerApp/PingerApp.py
+      - run: git diff --check
+      - shell: bash
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add PingerApp/PingerApp.py PingerApp.spec installer/PingerApp.iss .github/workflows/windows-installer.yml scripts/build_windows.ps1 scripts/build_installer.ps1 README.md
+          git commit -m "Rebrand packaged app as PingMedic"
+          git push origin HEAD:ui/responsive-main-layout
