@@ -2,14 +2,6 @@ name: Build Windows Installer
 
 on:
   pull_request:
-    paths:
-      - "PingerApp/**"
-      - "PingerApp.spec"
-      - "requirements.txt"
-      - "requirements-dev.txt"
-      - "installer/**"
-      - "scripts/**"
-      - ".github/workflows/windows-installer.yml"
   workflow_dispatch:
     inputs:
       version:
