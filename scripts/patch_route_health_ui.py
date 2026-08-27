@@ -4,7 +4,6 @@ import re
 path = Path('PingerApp/PingerApp.py')
 text = path.read_text(encoding='utf-8')
 
-# Replace Route Health diagnosis with clearer local-vs-upstream wording.
 pattern = re.compile(r"def route_health_diagnosis\(result\):\n.*?(?=\ndef [A-Za-z_]\w*\(|\nclass [A-Za-z_]\w*)", re.S)
 replacement = '''def route_health_diagnosis(result):
     paths = (result or {}).get("paths", {}) or {}
@@ -44,22 +43,13 @@ text, n = pattern.subn(replacement, text, count=1)
 if n != 1:
     raise SystemExit('Could not replace route_health_diagnosis')
 
-# Rename the raw-output section so it is clearly secondary.
 text = text.replace('QGroupBox("Ping Log / Speed Test JSON")', 'QGroupBox("Technical Details / Raw Output")')
-
-# Make the raw technical panel less dominant in the default layout.
 text = text.replace('self.route_raw_box.setMinimumHeight(220)', 'self.route_raw_box.setMinimumHeight(110)')
 text = text.replace('self.route_raw_box.setMinimumHeight(200)', 'self.route_raw_box.setMinimumHeight(110)')
 text = text.replace('self.route_raw_box.setMinimumHeight(180)', 'self.route_raw_box.setMinimumHeight(110)')
-
-# Add an Assessment column to Route Health if the current table definition matches the known UI.
 text = text.replace('QTableWidget(3, 9)', 'QTableWidget(3, 10)')
-text = text.replace(
-    '["Path", "Target", "Sent", "Received", "Loss", "Avg", "Max", "Jitter", "Spikes"]',
-    '["Path", "Target", "Sent", "Received", "Loss", "Avg", "Max", "Jitter", "Spikes", "Assessment"]'
-)
+text = text.replace('["Path", "Target", "Sent", "Received", "Loss", "Avg", "Max", "Jitter", "Spikes"]', '["Path", "Target", "Sent", "Received", "Loss", "Avg", "Max", "Jitter", "Spikes", "Assessment"]')
 
-# Inject a small assessment helper method in the main window before Route Health result rendering.
 needle = '    def _set_route_health_result(self, result: dict):\n'
 if needle in text and '    def _route_path_assessment(self, stats: dict):\n' not in text:
     helper = '''    def _route_path_assessment(self, stats: dict):
@@ -74,14 +64,6 @@ if needle in text and '    def _route_path_assessment(self, stats: dict):\n' not
 '''
     text = text.replace(needle, helper + needle, 1)
 
-# If the existing row writer builds a list ending in spikes, append assessment.
-text = re.sub(
-    r'(f"\{stats\.get\(\'spike_count\', 0\)\} over \{stats\.get\(\'spike_threshold_ms\', 0\):\.0f\} ms"\s*,?\n\s*\])',
-    lambda m: m.group(0),
-    text,
-)
-
-# Safer direct patch for the common values list shape.
 old = '''                f"{stats.get('spike_count', 0)} over {stats.get('spike_threshold_ms', 0):.0f} ms",
             ]'''
 new = '''                f"{stats.get('spike_count', 0)} over {stats.get('spike_threshold_ms', 0):.0f} ms",
@@ -89,16 +71,9 @@ new = '''                f"{stats.get('spike_count', 0)} over {stats.get('spike_
             ]'''
 text = text.replace(old, new)
 
-# Status should distinguish successful execution with findings from execution failure.
-old_status = 'self._set_route_status("Route health test completed.", "error")'
-if old_status in text:
-    text = text.replace(old_status, 'self._set_route_status("Completed - attention recommended.", "running")')
-
-# Handle the more likely result-based completion logic if present.
-text = text.replace(
-    'self._set_route_status("Route health test completed.", level)',
-    'self._set_route_status("Route health test completed." if level == "ok" else "Completed - attention recommended.", "ok" if level == "ok" else "running")'
-)
+text = text.replace('self._set_route_status("Route health test completed.", "error")', 'self._set_route_status("Completed - attention recommended.", "running")')
+text = text.replace('self._set_route_status("Route health test completed.", level)', 'self._set_route_status("Route health test completed." if level == "ok" else "Completed - attention recommended.", "ok" if level == "ok" else "running")')
 
 path.write_text(text, encoding='utf-8')
 print('Route Health UI patch applied')
+# trigger v2
