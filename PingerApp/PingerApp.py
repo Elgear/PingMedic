@@ -3016,13 +3016,13 @@ class PingerApp(QWidget):
 
         # §3.A.g Avg-line toggles
         self.best_avg_btn     = QPushButton("Best Avg: ON")
-        self.best_avg_btn.setMinimumWidth(104)
+        self.best_avg_btn.setMinimumWidth(92)
         self.best_avg_btn.setCheckable(True); self.best_avg_btn.setChecked(True)
         self.worst_avg_btn    = QPushButton("Worst Avg: ON")
-        self.worst_avg_btn.setMinimumWidth(104)
+        self.worst_avg_btn.setMinimumWidth(92)
         self.worst_avg_btn.setCheckable(True); self.worst_avg_btn.setChecked(True)
         self.combined_avg_btn = QPushButton("Comb Avg: ON")
-        self.combined_avg_btn.setMinimumWidth(104)
+        self.combined_avg_btn.setMinimumWidth(92)
         self.combined_avg_btn.setCheckable(True); self.combined_avg_btn.setChecked(True)
         self.best_avg_btn.toggled.connect(self.toggle_best_avg)
         self.worst_avg_btn.toggled.connect(self.toggle_worst_avg)
@@ -3430,8 +3430,8 @@ class PingerApp(QWidget):
             return style_summary_cell(label)
 
         alert_group = QGroupBox("Alert Counts")
-        alert_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        alert_group.setMinimumSize(175,120)
+        alert_group.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        alert_group.setMinimumSize(0,120)
         ag = QGridLayout(); ag.setContentsMargins(8,8,8,8)
         ag.setHorizontalSpacing(8); ag.setVerticalSpacing(6)
         ag.setColumnStretch(0, 1)
@@ -3450,14 +3450,14 @@ class PingerApp(QWidget):
 
         # §3.B.d Latency-Stats panel
         stats_group = QGroupBox("Latency Stats")
-        stats_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        stats_group.setMinimumSize(335,120)
-        sg = QGridLayout(); sg.setContentsMargins(8,8,12,8)
-        sg.setHorizontalSpacing(12); sg.setVerticalSpacing(6)
+        stats_group.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        stats_group.setMinimumSize(0,120)
+        sg = QGridLayout(); sg.setContentsMargins(8,8,8,8)
+        sg.setHorizontalSpacing(8); sg.setVerticalSpacing(6)
         sg.setColumnStretch(0, 2)
         sg.setColumnStretch(1, 1)
         sg.setColumnStretch(2, 0)
-        sg.setColumnMinimumWidth(2, 104)
+        sg.setColumnMinimumWidth(2, 92)
         style_summary_cell(self.avg_low_label)
         sg.addWidget(summary_caption("Avg best 10:"),  0,0)
         sg.addWidget(self.avg_low_label,                    0,1)
@@ -3474,8 +3474,8 @@ class PingerApp(QWidget):
 
         # §3.B.e Jitter-Stats panel
         jit_group = QGroupBox("Jitter Stats")
-        jit_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        jit_group.setMinimumSize(255,120)
+        jit_group.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        jit_group.setMinimumSize(0,120)
         jl = QGridLayout(); jl.setContentsMargins(8,8,8,8)
         jl.setHorizontalSpacing(12); jl.setVerticalSpacing(6)
         style_summary_cell(self.jit_low_label)
@@ -3530,7 +3530,7 @@ class PingerApp(QWidget):
         # combine panels
         panel_h = QHBoxLayout(); panel_h.setAlignment(Qt.AlignLeft)
         panel_h.setSpacing(8)
-        panel_h.addWidget(alert_group, 2)
+        panel_h.addWidget(alert_group, 3)
         panel_h.addWidget(stats_group, 3)
         panel_h.addWidget(jit_group, 3)
         panel_h.addWidget(host_info_group, 4)
