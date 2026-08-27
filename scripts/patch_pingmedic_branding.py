@@ -35,7 +35,6 @@ replacements = {
     ],
     Path('scripts/build_installer.ps1'): [
         ('dist\\PingerApp\\PingerApp.exe', 'dist\\PingMedic\\PingMedic.exe'),
-        ('PyInstaller output was not found: $appExe.', 'PyInstaller output was not found: $appExe.'),
         ('installer_output\\PingerAppSetup-0.1.0.exe', 'installer_output\\PingMedicSetup-0.1.0.exe'),
     ],
     Path('README.md'): [
@@ -43,7 +42,6 @@ replacements = {
         ('PingerAppSetup-0.1.0.exe', 'PingMedic_Setup_0.1.0.exe'),
         ('PingerApp is a local troubleshooting tool', 'PingMedic is a local troubleshooting tool'),
         ('PingerApp source code', 'PingMedic source code'),
-        ('The PingerApp executable', 'The PingMedic executable'),
         ('dist\\PingerApp\\PingerApp.exe', 'dist\\PingMedic\\PingMedic.exe'),
         ('installer_output\\PingerAppSetup-0.1.0.exe', 'installer_output\\PingMedicSetup-0.1.0.exe'),
     ],
@@ -57,4 +55,4 @@ for path, pairs in replacements.items():
         text = text.replace(old, new)
     path.write_text(text, encoding='utf-8')
 
-# trigger
+# trigger 2
