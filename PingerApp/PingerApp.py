@@ -3186,7 +3186,9 @@ class PingerApp(QWidget):
         self.route_summary_labels = {}
         self.route_table = None
         self.route_diagnosis_box = None
+        self.route_speed_details_box = None
         self.route_raw_box = None
+        self.route_raw_toggle_btn = None
         self.route_last_result = None
         self.route_last_error = None
         self.route_health_btn = QPushButton("Route Health")
@@ -3931,6 +3933,61 @@ class PingerApp(QWidget):
         wrapper_layout.addWidget(header)
         wrapper_layout.addWidget(group)
         return wrapper
+
+    def _make_hidden_details_group(self, title: str, button_text: str, line_wrap=QTextEdit.WidgetWidth, min_height=130):
+        group = QGroupBox(title)
+        group_layout = QVBoxLayout()
+        toggle = QPushButton(button_text)
+        toggle.setCheckable(True)
+        box = QTextEdit()
+        box.setReadOnly(True)
+        box.setMinimumHeight(min_height)
+        box.setLineWrapMode(line_wrap)
+        box.setVisible(False)
+
+        def toggle_details(checked):
+            box.setVisible(checked)
+            toggle.setText(("Hide " if checked else "Show ") + button_text.removeprefix("Show ").removeprefix("Hide "))
+
+        toggle.toggled.connect(toggle_details)
+        group_layout.addWidget(toggle)
+        group_layout.addWidget(box)
+        group.setLayout(group_layout)
+        return group, toggle, box
+
+    def _format_librespeed_details(self, raw_text: str):
+        try:
+            data = json.loads(raw_text or "{}")
+        except (TypeError, json.JSONDecodeError):
+            return "Speed-test details unavailable."
+        if isinstance(data, list):
+            data = data[0] if data else {}
+        if not isinstance(data, dict):
+            return "Speed-test details unavailable."
+
+        server = data.get("server", {}) or {}
+        lines = []
+        server_name = server.get("name") or "N/A"
+        server_url = server.get("url") or server.get("server")
+        lines.append(f"Server: {server_name}")
+        if server_url:
+            lines.append(f"Server URL: {server_url}")
+        timestamp = data.get("timestamp")
+        if timestamp:
+            lines.append(f"Test Time: {self._format_timestamp(timestamp)}")
+        if data.get("ping") is not None:
+            lines.append(f"Latency: {float(data.get('ping')):.2f} ms")
+        if data.get("jitter") is not None:
+            lines.append(f"Jitter: {float(data.get('jitter')):.2f} ms")
+        if data.get("download") is not None:
+            lines.append(f"Download: {format_mbps(data.get('download'))}")
+        if data.get("upload") is not None:
+            lines.append(f"Upload: {format_mbps(data.get('upload'))}")
+        if data.get("bytes_received") is not None:
+            lines.append(f"Data Received: {format_bytes_decimal(data.get('bytes_received'))}")
+        if data.get("bytes_sent") is not None:
+            lines.append(f"Data Sent: {format_bytes_decimal(data.get('bytes_sent'))}")
+        return "\n".join(lines) if lines else "No speed-test details available."
 
     def show_port_check_window(self):
         """Open the Network Scanner diagnostic window."""
@@ -4997,15 +5054,10 @@ class PingerApp(QWidget):
             diagnosis_group.setLayout(diagnosis_layout)
             layout.addWidget(diagnosis_group)
 
-            raw_group = QGroupBox("Raw iperf3 JSON")
-            raw_layout = QVBoxLayout()
-            self.lan_raw_box = QTextEdit()
-            self.lan_raw_box.setReadOnly(True)
-            self.lan_raw_box.setMinimumHeight(130)
-            self.lan_raw_box.setLineWrapMode(QTextEdit.NoWrap)
-            raw_layout.addWidget(self.lan_raw_box)
-            raw_group.setLayout(raw_layout)
-            layout.addWidget(raw_group, 1)
+            raw_group, self.lan_raw_toggle_btn, self.lan_raw_box = self._make_hidden_details_group(
+                "Technical Details", "Show raw iperf3 JSON", QTextEdit.NoWrap, 130
+            )
+            layout.addWidget(raw_group)
 
             self.lan_window.setLayout(layout)
 
@@ -5269,15 +5321,10 @@ class PingerApp(QWidget):
             diagnosis_group.setLayout(diagnosis_layout)
             layout.addWidget(diagnosis_group)
 
-            raw_group = QGroupBox("Ping Log")
-            raw_layout = QVBoxLayout()
-            self.gateway_raw_box = QTextEdit()
-            self.gateway_raw_box.setReadOnly(True)
-            self.gateway_raw_box.setMinimumHeight(160)
-            self.gateway_raw_box.setLineWrapMode(QTextEdit.WidgetWidth)
-            raw_layout.addWidget(self.gateway_raw_box)
-            raw_group.setLayout(raw_layout)
-            layout.addWidget(raw_group, 1)
+            raw_group, self.gateway_raw_toggle_btn, self.gateway_raw_box = self._make_hidden_details_group(
+                "Technical Details", "Show ping log", QTextEdit.WidgetWidth, 160
+            )
+            layout.addWidget(raw_group)
 
             self.gateway_window.setLayout(layout)
 
@@ -5508,15 +5555,21 @@ class PingerApp(QWidget):
             diagnosis_group.setLayout(diagnosis_layout)
             layout.addWidget(diagnosis_group)
 
-            raw_group = QGroupBox("Ping Log / Speed Test JSON")
-            raw_layout = QVBoxLayout()
-            self.route_raw_box = QTextEdit()
-            self.route_raw_box.setReadOnly(True)
-            self.route_raw_box.setMinimumHeight(150)
-            self.route_raw_box.setLineWrapMode(QTextEdit.WidgetWidth)
-            raw_layout.addWidget(self.route_raw_box)
-            raw_group.setLayout(raw_layout)
-            layout.addWidget(raw_group, 1)
+            speed_details_group = QGroupBox("Speed Test Details")
+            speed_details_layout = QVBoxLayout()
+            self.route_speed_details_box = QTextEdit()
+            self.route_speed_details_box.setReadOnly(True)
+            self.route_speed_details_box.setMaximumHeight(150)
+            self.route_speed_details_box.setLineWrapMode(QTextEdit.WidgetWidth)
+            self.route_speed_details_box.setPlaceholderText("Readable speed-test details will appear here.")
+            speed_details_layout.addWidget(self.route_speed_details_box)
+            speed_details_group.setLayout(speed_details_layout)
+            layout.addWidget(speed_details_group)
+
+            raw_group, self.route_raw_toggle_btn, self.route_raw_box = self._make_hidden_details_group(
+                "Technical Details", "Show probe log / raw LibreSpeed output", QTextEdit.WidgetWidth, 150
+            )
+            layout.addWidget(raw_group)
 
             self.route_window.setLayout(layout)
 
@@ -5566,6 +5619,8 @@ class PingerApp(QWidget):
             self.route_table.setRowCount(0)
         if self.route_diagnosis_box is not None:
             self.route_diagnosis_box.clear()
+        if self.route_speed_details_box is not None:
+            self.route_speed_details_box.clear()
         if self.route_raw_box is not None:
             self.route_raw_box.clear()
         self.route_run_btn.setEnabled(False)
@@ -5641,9 +5696,11 @@ class PingerApp(QWidget):
 
         if self.route_diagnosis_box is not None:
             self.route_diagnosis_box.setPlainText(result.get("diagnosis", "N/A"))
+        if self.route_speed_details_box is not None:
+            self.route_speed_details_box.setPlainText(self._format_librespeed_details(result.get("speed_raw", "")))
         if self.route_raw_box is not None:
             self.route_raw_box.append("")
-            self.route_raw_box.append("LibreSpeed JSON:")
+            self.route_raw_box.append("Raw LibreSpeed output:")
             self.route_raw_box.append(result.get("speed_raw", ""))
 
         problem = any(
@@ -5748,15 +5805,10 @@ class PingerApp(QWidget):
             diagnosis_group.setLayout(diagnosis_layout)
             layout.addWidget(diagnosis_group)
 
-            raw_group = QGroupBox("Raw Wi-Fi Command Output")
-            raw_layout = QVBoxLayout()
-            self.wifi_raw_box = QTextEdit()
-            self.wifi_raw_box.setReadOnly(True)
-            self.wifi_raw_box.setMinimumHeight(150)
-            self.wifi_raw_box.setLineWrapMode(QTextEdit.WidgetWidth)
-            raw_layout.addWidget(self.wifi_raw_box)
-            raw_group.setLayout(raw_layout)
-            layout.addWidget(raw_group, 1)
+            raw_group, self.wifi_raw_toggle_btn, self.wifi_raw_box = self._make_hidden_details_group(
+                "Technical Details", "Show raw Wi-Fi command output", QTextEdit.WidgetWidth, 150
+            )
+            layout.addWidget(raw_group)
 
             self.wifi_window.setLayout(layout)
 
@@ -6226,15 +6278,10 @@ class PingerApp(QWidget):
             diagnosis_group.setLayout(diagnosis_layout)
             layout.addWidget(diagnosis_group)
 
-            raw_group = QGroupBox("Ping Log / Speed Test JSON")
-            raw_layout = QVBoxLayout()
-            self.loaded_raw_box = QTextEdit()
-            self.loaded_raw_box.setReadOnly(True)
-            self.loaded_raw_box.setMinimumHeight(170)
-            self.loaded_raw_box.setLineWrapMode(QTextEdit.WidgetWidth)
-            raw_layout.addWidget(self.loaded_raw_box)
-            raw_group.setLayout(raw_layout)
-            layout.addWidget(raw_group, 1)
+            raw_group, self.loaded_raw_toggle_btn, self.loaded_raw_box = self._make_hidden_details_group(
+                "Technical Details", "Show ping log / raw LibreSpeed output", QTextEdit.WidgetWidth, 170
+            )
+            layout.addWidget(raw_group)
 
             self.loaded_window.setLayout(layout)
 
@@ -6759,14 +6806,10 @@ class PingerApp(QWidget):
             results_group.setLayout(results)
             layout.addWidget(results_group)
 
-            raw_group = QGroupBox("Raw Ping Output")
-            raw_layout = QVBoxLayout()
-            self.mtu_raw_box = QTextEdit()
-            self.mtu_raw_box.setReadOnly(True)
-            self.mtu_raw_box.setLineWrapMode(QTextEdit.WidgetWidth)
-            raw_layout.addWidget(self.mtu_raw_box)
-            raw_group.setLayout(raw_layout)
-            layout.addWidget(raw_group, 1)
+            raw_group, self.mtu_raw_toggle_btn, self.mtu_raw_box = self._make_hidden_details_group(
+                "Technical Details", "Show raw ping output", QTextEdit.WidgetWidth, 150
+            )
+            layout.addWidget(raw_group)
 
             self.mtu_window.setLayout(layout)
 
@@ -6924,11 +6967,11 @@ class PingerApp(QWidget):
 
             layout.addWidget(self.trace_target_label)
             layout.addWidget(self.tr_table, 2)
-            self.trace_raw_box = QTextEdit()
-            self.trace_raw_box.setReadOnly(True)
-            self.trace_raw_box.setMinimumHeight(120)
+            raw_group, self.trace_raw_toggle_btn, self.trace_raw_box = self._make_hidden_details_group(
+                "Technical Details", "Show raw traceroute output", QTextEdit.WidgetWidth, 120
+            )
             self.trace_raw_box.setPlaceholderText("Raw traceroute output will appear here.")
-            layout.addWidget(self.trace_raw_box, 1)
+            layout.addWidget(raw_group)
             self.trace_window.setLayout(layout)
 
         if self.trace_input is not None and not self.trace_input.text().strip():
